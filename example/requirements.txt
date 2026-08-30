@@ -1,0 +1,24 @@
+Bowling score calculator — informal requirements
+
+We need a small service that scores a single game of ten-pin bowling for one
+player. A game has 10 frames. In each frame the player rolls up to two balls
+to knock down 10 pins. The score should be available through a simple HTTP
+endpoint that takes the list of rolls and returns the total score.
+
+Feature 1 — open frames: if the player never knocks down all 10 pins in a
+frame, the game score is just the total number of pins knocked down. A full
+gutter game scores 0. A game of all single-pin rolls scores 20.
+
+Feature 2 — spares: knocking down all 10 pins with the two rolls of a frame
+is a spare; that frame scores 10 plus the number of pins knocked down by the
+next roll.
+
+Feature 3 — strikes: knocking down all 10 pins with the first roll of a frame
+is a strike; that frame scores 10 plus the pins knocked down by the next two
+rolls. A perfect game (12 strikes) scores 300.
+
+Feature 4 — the tenth frame: a spare in the tenth frame earns one bonus roll,
+a strike in the tenth frame earns two; bonus rolls only count as bonus for
+the tenth frame, they are not frames of their own.
+
+Work the features in order, one Tran Forge cycle each.

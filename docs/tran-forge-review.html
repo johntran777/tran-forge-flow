@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tran Forge Flow — Critical Review</title>
+<style>
+  :root {
+    --bg: #f7f7f5;
+    --surface: #ffffff;
+    --text: #1a1a1a;
+    --muted: #5c5c56;
+    --border: #e2e0da;
+    --code-bg: #eeede8;
+    --accent: #2f6f4f;
+    --bug: #b03030;
+    --bug-bg: #fbeaea;
+    --gap: #a06010;
+    --gap-bg: #fdf3e3;
+    --minor: #4a5a8a;
+    --minor-bg: #eceff8;
+    --good: #2f6f4f;
+    --good-bg: #e8f2ec;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16181a;
+      --surface: #1e2124;
+      --text: #e6e4de;
+      --muted: #a09e96;
+      --border: #33373b;
+      --code-bg: #2a2d31;
+      --accent: #6fbf94;
+      --bug: #e07070;
+      --bug-bg: #3a2426;
+      --gap: #d9a04a;
+      --gap-bg: #38301f;
+      --minor: #8fa2d9;
+      --minor-bg: #242a3a;
+      --good: #6fbf94;
+      --good-bg: #1f3229;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+  header { margin-bottom: 2rem; }
+  h1 { font-size: 1.9rem; margin: 0 0 .3rem; letter-spacing: -0.02em; }
+  .subtitle { color: var(--muted); font-size: .95rem; }
+  .verdict {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1.5rem 0 2.5rem;
+  }
+  .verdict p { margin: .35rem 0; }
+  h2 {
+    font-size: 1.25rem;
+    margin: 2.75rem 0 .35rem;
+    padding-bottom: .4rem;
+    border-bottom: 2px solid var(--border);
+    letter-spacing: -0.01em;
+  }
+  h2 .count { color: var(--muted); font-weight: 400; font-size: .9rem; }
+  .section-intro { color: var(--muted); font-size: .92rem; margin: .25rem 0 1.25rem; }
+  .finding {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    margin: 1rem 0;
+  }
+  .finding h3 { margin: 0 0 .5rem; font-size: 1.02rem; display: flex; align-items: baseline; gap: .55rem; flex-wrap: wrap; }
+  .finding p { margin: .5rem 0; }
+  .finding p:last-child { margin-bottom: 0; }
+  .badge {
+    display: inline-block;
+    font-size: .68rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: .15rem .5rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .badge.bug   { color: var(--bug);   background: var(--bug-bg); }
+  .badge.gap   { color: var(--gap);   background: var(--gap-bg); }
+  .badge.minor { color: var(--minor); background: var(--minor-bg); }
+  .badge.good  { color: var(--good);  background: var(--good-bg); }
+  .num { color: var(--muted); font-weight: 600; }
+  code {
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-size: .85em;
+    background: var(--code-bg);
+    border-radius: 4px;
+    padding: .1em .35em;
+  }
+  .finding.bug-card   { border-left: 4px solid var(--bug); }
+  .finding.gap-card   { border-left: 4px solid var(--gap); }
+  .finding.minor-card { border-left: 4px solid var(--minor); }
+  .finding.good-card  { border-left: 4px solid var(--good); }
+  ul.minor-list { padding-left: 1.2rem; }
+  ul.minor-list li { margin: .6rem 0; }
+  .fix { font-size: .92rem; color: var(--muted); }
+  .fix strong { color: var(--text); }
+  footer {
+    margin-top: 3.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: .85rem;
+  }
+  @media (max-width: 600px) {
+    .wrap { padding: 1.5rem 1rem 3rem; }
+    h1 { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Tran Forge Flow — Critical Review</h1>
+  <div class="subtitle">
+    Review of <code>/tran-forge</code>: <code>SKILL.md</code>, constitution (<code>discipline.md</code>,
+    <code>workflow.md</code>, <code>article-java-maven.md</code>), <code>config-template.md</code>, all seven
+    agent definitions, <code>grill-me/SKILL.md</code>, and the README · 2026-08-16
+  </div>
+</header>
+
+<div class="verdict">
+  <p><strong>Overall:</strong> a well-thought-out pipeline with clearly stated invariants and most edge cases
+  handled. The SHA/merge topology was traced across multi-cycle sessions, review-fix rounds, and Gate-2 fix
+  loops — the fast-forward guarantees genuinely hold everywhere except where noted below.</p>
+  <p><strong>Fix first:</strong> bugs #1 and #2. Both are swarm-forge artifacts that survived the port, and
+  both produce a <em>silently wrong</em> result rather than a visible failure — exactly the failure mode the
+  flow works hardest to prevent.</p>
+  <p><strong>Status update (2026-08-17):</strong> bugs #1–2 and gaps #3–11 have been fixed in the flow — repo
+  files under <code>tran-forge-flow/</code> and the installed copies in <code>~/.claude</code> alike. The
+  minor items remain open by choice. Line references below describe the files as of commit
+  <code>727a7b0</code>, i.e. before the fixes.</p>
+</div>
+
+<h2>Bugs <span class="count">— would actually misfire (2)</span></h2>
+
+<div class="finding bug-card">
+  <h3><span class="num">1.</span> All three reviewers build their diff in the <em>verify</em> worktree <span class="badge bug">Bug</span></h3>
+  <p>Stale swarm-forge copy-paste. In each reviewer's "Build the review input" and Codex invocation, the
+  template says <code>cd &lt;verify-worktree&gt;</code> and <code>-C &lt;abs-path-to-verify-worktree&gt;</code>
+  (<code>tran-forge-architecture-reviewer.md:67,91</code>, <code>tran-forge-security-reviewer.md:55,71</code>,
+  <code>tran-forge-performance-reviewer.md:57,77</code>) — contradicting their own "Where you work" sections
+  (<code>.worktrees/review-arch/-security/-perf</code>).</p>
+  <p>It is worse than a naming nit: the <code>verify</code> branch still sits at the <em>previous</em> cycle's
+  <code>SHA_final</code> until Phase 7, so a reviewer following the template literally computes
+  <code>git diff &lt;spec-sha&gt;..HEAD</code> against last cycle's code and hands Codex a nonsense diff — a
+  silently wrong review, not a crash.</p>
+  <p class="fix"><strong>Fix:</strong> the templates should reference the reviewer's own worktree.</p>
+</div>
+
+<div class="finding bug-card">
+  <h3><span class="num">2.</span> The Mutator's experiment-revert check can never pass on a real feature <span class="badge bug">Bug</span></h3>
+  <p><code>tran-forge-mutator.md:109</code> (and report template line 163): before the handoff commit, run
+  <code>git diff &lt;spec-sha&gt;..HEAD --name-only</code> scoped to <code>production_src</code> and confirm it
+  is <strong>empty</strong>. But the Mutator has merged <code>SHA_reviewed</code>, which contains the Coder's
+  production changes relative to the spec SHA — so that diff always lists the Coder's production files in any
+  cycle that wrote production code. A compliant Mutator either stalls/escalates every cycle or learns to
+  rationalize the check away.</p>
+  <p>It is also the wrong tool for its stated purpose: a commit-range diff never sees <em>uncommitted</em>
+  experiment leftovers at all.</p>
+  <p class="fix"><strong>Fix:</strong> <code>git status --porcelain</code> clean, plus
+  <code>git diff &lt;SHA_reviewed&gt;..HEAD --name-only</code> scoped to <code>production_src</code> empty.
+  The lead-side check at SKILL.md Phase 6 ("must touch test code only") specifies no range either and could
+  inherit the same mistake — spell out <code>SHA_reviewed..SHA_final</code>.</p>
+</div>
+
+<h2>Design / process gaps <span class="count">(9)</span></h2>
+
+<div class="finding gap-card">
+  <h3><span class="num">3.</span> Full-run mutation threshold blocks brownfield adoption <span class="badge gap">Gap</span></h3>
+  <p>The Mutator's final verification requires <code>mutation_full ≥ mutation_score_min</code> over the
+  <em>whole project</em> (<code>tran-forge-mutator.md:128</code>), while coverage is deliberately scoped to
+  "touched classes." On any repo with legacy code below the bar, the Mutator can never hand off green — and it
+  is forbidden from fixing production code, and shouldn't strengthen tests for code the cycle didn't touch.</p>
+  <p class="fix"><strong>Fix:</strong> scope the mutation gate to touched classes (consistent with coverage) or
+  make the full run informational. Also acknowledge that a full PIT run per cycle on a large repo is a
+  wall-clock problem.</p>
+</div>
+
+<div class="finding gap-card">
+  <h3><span class="num">4.</span> <code>needs-spec-change</code> findings stop the pipeline with no documented continuation <span class="badge gap">Gap</span></h3>
+  <p>The disposition table says "STOP and surface to the user" and "it belongs to the Specifier behind
+  Gate 1" — but there is no procedure for when the user says "yes, change the spec": re-spawn the Specifier
+  mid-cycle? Re-run Gate 1? Does the Coder re-implement in <code>implement</code> or <code>review-fix</code>
+  mode? Do all three reviews re-run? Same for INSENSITIVE Gherkin scenarios ("decisions for the next cycle" —
+  with no mechanics for feeding them into the next cycle's intake). This is the most likely place for the lead
+  to improvise inconsistently.</p>
+</div>
+
+<div class="finding gap-card">
+  <h3><span class="num">5.</span> No mid-cycle crash/resume story <span class="badge gap">Gap</span></h3>
+  <p>The ledger is only written at Phase 8, so a session that dies after Phase 2–6 leaves durable
+  <em>code</em> state (branches, worktrees) but no durable record of the lead's state — consolidated findings,
+  dispositions, which reviewer round-trips ran. The skill has no <code>resume</code> mode (matt-pocock
+  explicitly does).</p>
+  <p class="fix"><strong>Fix:</strong> at minimum document how a fresh session re-enters a half-finished cycle
+  from branch state; better, write an incremental ledger per phase instead of only at close.</p>
+</div>
+
+<div class="finding gap-card">
+  <h3><span class="num">6.</span> Gate 2 and Phase 6 fix loops bypass the reviews, contradicting the stated invariant <span class="badge gap">Gap</span></h3>
+  <p>The skill claims "every production write is reviewed" and "Nothing reaches the Mutator that a review has
+  not seen" (<code>SKILL.md:32–34, 723</code>). But a manual-test ❌ routes Coder → Mutator → re-test with no
+  reviewer in the loop, and a Phase 6 "production-only kill" fix goes Coder → Mutator likewise. Deliberate
+  trade-off, maybe — but then say so explicitly instead of stating an invariant the flow violates twice.
+  Relatedly, "re-run only the reviewers whose findings were acted on" means an architecture fix is never
+  security-reviewed.</p>
+</div>
+
+<div class="finding gap-card">
+  <h3><span class="num">7.</span> No iteration cap on the review→fix→re-review loop <span class="badge gap">Gap</span></h3>
+  <p>The Mutator loop is "bounded to ~2 iterations"; the Phases 3–5 loop has no bound. Re-run reviewers
+  re-review the <em>whole cycle diff</em>, so they can raise new findings each round (and re-raise
+  already-dispositioned Should-fixes the lead must re-dedupe) — a plausible infinite loop with three
+  <code>xhigh</code> Codex runs per lap.</p>
+  <p class="fix"><strong>Fix:</strong> add a round cap with escalation to the user.</p>
+</div>
+
+<div class="finding gap-card">
+  <h3><span class="num">8.</span> Reused worktrees are never checked for cleanliness <span class="badge gap">Gap</span></h3>
+  <p>Preflight checks <code>git status --porcelain</code> only on the main checkout. A crashed prior run can
+  leave uncommitted debris in <code>.worktrees/coder</code> (or an experiment leftover in
+  <code>.worktrees/mutator</code>), and the next Coder merges straight into it. Roles verify their
+  <em>branch name</em> on entry but not tree cleanliness (only the Specifier checks porcelain). Also
+  unhandled: a worktree that exists but is detached or on some other branch entirely.</p>
+  <p class="fix"><strong>Fix:</strong> preflight step 5 should porcelain-check each reused tree and handle the
+  wrong-branch/detached case explicitly.</p>
+</div>
+
+<div class="finding gap-card">
+  <h3><span class="num">9.</span> A free-text requirement + skipped grilling can wedge the Specifier <span class="badge gap">Gap</span></h3>
+  <p>Preflight 9 route 3 seeds <code>requirements_file</code> <em>uncommitted</em>; Phase 0 step 5 commits
+  it — but the carve-out sentence only names "the Jira-derived entry" when grilling is skipped
+  (<code>SKILL.md:298</code>). If the user skips grilling on a free-text feature, the entry can arrive at
+  Phase 1 uncommitted, and the Specifier's first check ("porcelain shows no changes you didn't make") trips →
+  STOP. Same class of issue: a Jira intake followed by a user abort leaves an uncommitted requirements edit
+  dirtying the tree.</p>
+</div>
+
+<div class="finding gap-card">
+  <h3><span class="num">10.</span> Scratch-directory convention is undefined <span class="badge gap">Gap</span></h3>
+  <p>The spawn-brief block requires "its own scratch directory" for the three reviewers, but nothing says
+  where scratch dirs live or who creates them. A reviewer that puts one inside its worktree dirties a tree the
+  flow assumes stays clean; the natural safe place (session scratchpad) is never named. And the manual
+  tester's report template leans heavily on <code>&lt;scratch&gt;</code>, yet the required-brief list
+  (<code>SKILL.md:345–349</code>) only mandates scratch dirs for the reviewers — the tester's is never required
+  to be passed.</p>
+</div>
+
+<div class="finding gap-card">
+  <h3><span class="num">11.</span> Service mode can false-pass against a stale server <span class="badge gap">Gap</span></h3>
+  <p>Mobile mode has a freshness check (binary mtime vs build start); service mode has no analogue. If a stale
+  instance from an earlier run still holds port 8080, <code>run_app</code> fails but the health poll happily
+  gets a 200 from the <em>old</em> process — a pass on code that isn't <code>SHA_final</code>.</p>
+  <p class="fix"><strong>Fix:</strong> assert the port is free before booting and/or verify the served
+  version/PID is the process the tester started.</p>
+</div>
+
+<h2>Minor <span class="count">(6)</span></h2>
+
+<div class="finding minor-card">
+  <ul class="minor-list">
+    <li><strong>Ledger ordering:</strong> the ledger is committed (Phase 8 step 4) <em>before</em> the
+    retention question (step 5) and the cycle report, so the ledger cannot record the retention decision it is
+    supposed to be the durable record of. <span class="badge minor">Minor</span></li>
+    <li><strong>Base is merged before it's verified:</strong> Phase 8 merges, <em>then</em> runs
+    <code>all_tests</code>; a red leaves a broken merge already on base. Low risk (base hasn't moved), but
+    running the suite on <code>SHA_final</code> in the main checkout first would be strictly safer.
+    <span class="badge minor">Minor</span></li>
+    <li><strong><code>TeamCreate</code> may be stale API:</strong> the current harness treats
+    <code>team_name</code> as deprecated ("the session has a single implicit team"). Verify
+    <code>TeamCreate({team_name: ...})</code> at <code>SKILL.md:306</code> still exists before it fails on a
+    live run. <span class="badge minor">Minor</span></li>
+    <li><strong>Preflight side effects before commitment:</strong> worktrees are created (step 5) before
+    feature selection (step 9), so a user who declines to name a feature has already had six worktrees and
+    branches created. <span class="badge minor">Minor</span></li>
+    <li><strong>Hardcoded timezone:</strong> <code>article-java-maven.md:105</code> pins
+    <code>-Duser.timezone=America/New_York</code> in a supposedly generic stack article.
+    <span class="badge minor">Minor</span></li>
+    <li><strong>File-extension mismatch:</strong> <code>requirements_file</code> defaults to
+    <code>requirements.txt</code> but holds markdown — cosmetic, but it confuses tooling and readers.
+    <span class="badge minor">Minor</span></li>
+  </ul>
+</div>
+
+<h2>What holds up well</h2>
+
+<div class="finding good-card">
+  <p><span class="badge good">Sound</span> For balance: the two-gate structure, commit-pointer handoffs,
+  <code>--ff-only</code> as a tamper detector on read-only branches, the one-finding-per-fresh-spawn
+  review-fix protocol, the Gherkin sensitivity sweep as a substitute for PIT-over-Cucumber, the surface guard
+  ("shared source is not shared evidence"), skipped-never-passed reporting, and the token-discipline design
+  are all internally consistent. The SHA/merge topology was traced across multi-cycle sessions, review-fix
+  rounds, and Gate-2 fix loops — the fast-forward guarantees genuinely hold everywhere except where noted
+  above.</p>
+</div>
+
+<footer>
+  Generated by a critical review of the Tran Forge flow (repo and <code>~/.claude</code> installed copies
+  verified in sync at review time). Line numbers refer to the files under
+  <code>tran-forge-flow/</code> as of commit <code>727a7b0</code>.
+</footer>
+
+</div>
+</body>
+</html>

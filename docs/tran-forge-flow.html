@@ -1,0 +1,805 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Tran Forge Flow — Field Guide</title>
+</head>
+<body>
+<style>
+  :root {
+    --ground: #F5F6F8;
+    --panel: #FFFFFF;
+    --panel-2: #EBEDF1;
+    --ink: #1C2026;
+    --ink-2: #545C68;
+    --line: #D4D8DF;
+    --steel: #3E648F;
+    --steel-soft: #DFE7F0;
+    --teal: #1F6B74;
+    --teal-soft: #DDEBEC;
+    --green: #3E7D4E;
+    --green-soft: #E0EDE3;
+    --red: #B0463C;
+    --red-soft: #F3E0DD;
+    --slate: #6B7280;
+    --slate-soft: #E8E9EC;
+    --night: #14171B;
+    --night-panel: #1D2126;
+    --night-ink: #E4E7EB;
+    --night-line: #303640;
+    --night-steel: #82ABD9;
+    --night-green: #7CBE8C;
+    --night-red: #E08076;
+    --shadow: 0 1px 3px rgba(28, 32, 38, 0.08);
+    --serif: "Charter", "Bitstream Charter", "Iowan Old Style", Georgia, serif;
+    --sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Menlo, Consolas, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ground: #14171B;
+      --panel: #1D2126;
+      --panel-2: #23272E;
+      --ink: #E4E7EB;
+      --ink-2: #9AA3AF;
+      --line: #303640;
+      --steel: #82ABD9;
+      --steel-soft: #1F2A38;
+      --teal: #5FB7C2;
+      --teal-soft: #1C3236;
+      --green: #7CBE8C;
+      --green-soft: #21332A;
+      --red: #E08076;
+      --red-soft: #3B2523;
+      --slate: #9AA1AC;
+      --slate-soft: #2B2E35;
+      --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #14171B;
+    --panel: #1D2126;
+    --panel-2: #23272E;
+    --ink: #E4E7EB;
+    --ink-2: #9AA3AF;
+    --line: #303640;
+    --steel: #82ABD9;
+    --steel-soft: #1F2A38;
+    --teal: #5FB7C2;
+    --teal-soft: #1C3236;
+    --green: #7CBE8C;
+    --green-soft: #21332A;
+    --red: #E08076;
+    --red-soft: #3B2523;
+    --slate: #9AA1AC;
+    --slate-soft: #2B2E35;
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  }
+  :root[data-theme="light"] {
+    --ground: #F5F6F8;
+    --panel: #FFFFFF;
+    --panel-2: #EBEDF1;
+    --ink: #1C2026;
+    --ink-2: #545C68;
+    --line: #D4D8DF;
+    --steel: #3E648F;
+    --steel-soft: #DFE7F0;
+    --teal: #1F6B74;
+    --teal-soft: #DDEBEC;
+    --green: #3E7D4E;
+    --green-soft: #E0EDE3;
+    --red: #B0463C;
+    --red-soft: #F3E0DD;
+    --slate: #6B7280;
+    --slate-soft: #E8E9EC;
+    --shadow: 0 1px 3px rgba(28, 32, 38, 0.08);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.65;
+    margin: 0;
+  }
+  .wrap { max-width: 1060px; margin: 0 auto; padding: 0 24px 96px; }
+  .prose { max-width: 70ch; }
+
+  h1, h2, h3, h4 { font-family: var(--sans); text-wrap: balance; line-height: 1.2; }
+  h1 { font-size: 2.6rem; font-weight: 700; letter-spacing: -0.02em; margin: 0.2em 0 0.3em; }
+  h2 { font-size: 1.55rem; font-weight: 700; margin: 3.2em 0 0.6em; letter-spacing: -0.01em; }
+  h3 { font-size: 1.12rem; font-weight: 650; margin: 1.8em 0 0.5em; }
+  p { margin: 0.75em 0; }
+  a { color: var(--teal); }
+  code, .mono { font-family: var(--mono); font-size: 0.86em; }
+  p code, li code, td code { background: var(--panel-2); padding: 0.1em 0.35em; border-radius: 4px; }
+  .eyebrow {
+    font-family: var(--sans); font-size: 0.72rem; font-weight: 650;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--steel); margin: 0;
+  }
+  .lede { font-size: 1.18rem; color: var(--ink-2); max-width: 62ch; }
+
+  header.masthead { padding-top: 64px; border-bottom: 1px solid var(--line); padding-bottom: 32px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+  .chip {
+    font-family: var(--sans); font-size: 0.78rem; font-weight: 600;
+    padding: 4px 12px; border-radius: 999px;
+    background: var(--panel-2); color: var(--ink-2); border: 1px solid var(--line);
+  }
+  .chip.steel { background: var(--steel-soft); color: var(--steel); border-color: transparent; }
+  .chip.teal  { background: var(--teal-soft);  color: var(--teal);  border-color: transparent; }
+  .chip.green { background: var(--green-soft); color: var(--green); border-color: transparent; }
+
+  .principles { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; margin: 26px 0; }
+  .principle {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; box-shadow: var(--shadow);
+  }
+  .principle h4 { margin: 0 0 6px; font-size: 0.95rem; }
+  .principle p { margin: 0; font-size: 0.92rem; color: var(--ink-2); }
+  .principle .k { color: var(--steel); font-family: var(--sans); font-weight: 650; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; font-family: var(--sans); font-size: 0.8rem; color: var(--ink-2); margin: 14px 0 22px; }
+  .legend .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+  /* ---------- pipeline diagram ---------- */
+  .pipeline-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 26px; align-items: start; }
+  @media (max-width: 900px) { .pipeline-grid { grid-template-columns: 1fr; } }
+
+  .rail { position: relative; padding-left: 26px; }
+  .rail::before {
+    content: ""; position: absolute; left: 8px; top: 14px; bottom: 14px;
+    width: 2px; background: var(--line);
+  }
+  .node {
+    position: relative; display: block; width: 100%; text-align: left;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 14px 16px; margin: 10px 0; cursor: pointer;
+    font-family: var(--sans); color: var(--ink);
+    box-shadow: var(--shadow);
+    transition: border-color 0.15s;
+  }
+  .node:hover { border-color: var(--steel); }
+  .node:focus-visible { outline: 3px solid var(--steel); outline-offset: 2px; }
+  .node::before {
+    content: ""; position: absolute; left: -23px; top: 20px;
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--steel); border: 2px solid var(--ground);
+  }
+  .node.human::before { background: var(--teal); }
+  .node.human { border-left: 3px solid var(--teal); }
+  .node.selected { border-color: var(--steel); background: var(--steel-soft); }
+  .node.human.selected { border-color: var(--teal); background: var(--teal-soft); }
+  .node .n-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+  .node .n-phase { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); }
+  .node .n-title { font-size: 1rem; font-weight: 650; margin-top: 2px; }
+  .node .n-sub { font-size: 0.82rem; color: var(--ink-2); margin-top: 3px; font-family: var(--serif); }
+  .actor { font-size: 0.68rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; white-space: nowrap; }
+  .actor.machine { background: var(--steel-soft); color: var(--steel); }
+  .actor.human { background: var(--teal-soft); color: var(--teal); }
+  .gate-tag {
+    display: inline-block; margin-top: 8px; font-size: 0.7rem; font-weight: 700;
+    color: var(--teal); border: 1.5px dashed var(--teal); padding: 2px 10px; border-radius: 6px;
+    letter-spacing: 0.06em;
+  }
+  .detail {
+    position: sticky; top: 18px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 22px 24px; box-shadow: var(--shadow); font-size: 0.95rem;
+  }
+  .detail h3 { margin: 0 0 2px; font-size: 1.15rem; }
+  .detail .d-actor { font-family: var(--sans); font-size: 0.78rem; font-weight: 650; margin-bottom: 12px; }
+  .detail .d-actor.machine { color: var(--steel); }
+  .detail .d-actor.human { color: var(--teal); }
+  .detail ul { padding-left: 20px; margin: 8px 0; }
+  .detail li { margin: 5px 0; }
+  .detail .d-artifact {
+    font-family: var(--mono); font-size: 0.78rem; background: var(--panel-2);
+    border-radius: 6px; padding: 8px 12px; margin-top: 14px; overflow-x: auto; white-space: nowrap;
+  }
+  .detail .d-label { font-family: var(--sans); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); margin-top: 16px; }
+
+  /* ---------- baton (night) ---------- */
+  .night {
+    background: var(--night); color: var(--night-ink);
+    border-radius: 14px; padding: 30px 30px 34px; margin: 30px 0;
+  }
+  .night .eyebrow { color: var(--night-steel); }
+  .night h3 { color: var(--night-ink); margin-top: 0.4em; }
+  .night p { color: #A9B0B9; font-size: 0.95rem; max-width: 68ch; }
+  .baton { display: flex; flex-wrap: wrap; gap: 8px; align-items: stretch; margin-top: 20px; }
+  .baton-step {
+    flex: 1 1 150px; min-width: 150px; text-align: left;
+    background: var(--night-panel); color: var(--night-ink);
+    border: 1px solid var(--night-line); border-radius: 9px;
+    padding: 12px 14px; cursor: pointer; font-family: var(--sans);
+    transition: border-color 0.15s;
+  }
+  .baton-step:hover { border-color: var(--night-steel); }
+  .baton-step:focus-visible { outline: 3px solid var(--night-steel); outline-offset: 2px; }
+  .baton-step.selected { border-color: var(--night-steel); background: #1E2733; }
+  .baton-step .bs-sha { font-family: var(--mono); font-size: 0.72rem; color: var(--night-steel); font-weight: 650; }
+  .baton-step .bs-title { font-size: 0.88rem; font-weight: 650; margin-top: 2px; }
+  .baton-step .bs-sub { font-size: 0.74rem; color: #828A95; margin-top: 3px; }
+  .baton-arrow { align-self: center; color: var(--night-steel); font-family: var(--sans); font-size: 1.1rem; flex: 0 0 auto; }
+  .baton-detail {
+    margin-top: 16px; background: var(--night-panel); border: 1px solid var(--night-line);
+    border-radius: 9px; padding: 16px 20px; font-size: 0.92rem; color: #BEC5CD;
+  }
+  .baton-detail strong { color: var(--night-ink); }
+  .baton-detail code { background: #262C35; color: var(--night-steel); padding: 0.1em 0.35em; border-radius: 4px; }
+  .baton-note {
+    margin-top: 14px; font-family: var(--sans); font-size: 0.78rem; color: #828A95;
+    border-top: 1px dashed var(--night-line); padding-top: 12px;
+  }
+  .baton-note .glow { color: var(--night-steel); }
+
+  /* ---------- agent cards ---------- */
+  .agents { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; margin: 26px 0; }
+  .agent {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 22px; box-shadow: var(--shadow);
+  }
+  .agent .a-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+  .agent h3 { margin: 0; font-size: 1.02rem; font-family: var(--mono); font-weight: 650; }
+  .agent .a-role { font-family: var(--sans); font-size: 0.8rem; color: var(--steel); font-weight: 650; margin-top: 2px; }
+  .agent.is-human .a-role { color: var(--teal); }
+  .agent p { font-size: 0.9rem; color: var(--ink-2); margin: 10px 0; }
+  .agent .a-label { font-family: var(--sans); font-size: 0.66rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; color: var(--ink-2); margin-top: 14px; }
+  .agent ul { margin: 6px 0 0; padding-left: 18px; font-size: 0.88rem; }
+  .agent li { margin: 3px 0; }
+  .agent .never li { color: var(--red); }
+  .wt {
+    display: inline-block; font-family: var(--mono); font-size: 0.72rem; background: var(--panel-2);
+    border: 1px solid var(--line); padding: 2px 8px; border-radius: 6px; margin-top: 6px;
+  }
+
+  /* ---------- constitution ---------- */
+  .constitution { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 24px 0; counter-reset: consti; }
+  .consti {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px 18px; box-shadow: var(--shadow); position: relative; counter-increment: consti;
+  }
+  .consti::before {
+    content: counter(consti); position: absolute; top: 14px; right: 16px;
+    font-family: var(--sans); font-weight: 700; font-size: 0.85rem; color: var(--steel);
+    background: var(--steel-soft); width: 24px; height: 24px; border-radius: 50%;
+    display: grid; place-items: center;
+  }
+  .consti h4 { margin: 0 0 6px; font-family: var(--mono); font-size: 0.85rem; font-weight: 650; padding-right: 30px; }
+  .consti p { margin: 0; font-size: 0.85rem; color: var(--ink-2); }
+
+  /* ---------- gherkin anatomy ---------- */
+  .anatomy { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 22px; align-items: start; margin: 24px 0; }
+  @media (max-width: 860px) { .anatomy { grid-template-columns: 1fr; } }
+  .codecard {
+    background: var(--night); color: #BEC5CD; border-radius: 12px;
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.7;
+    padding: 18px 0; overflow-x: auto;
+  }
+  .codecard .cl { padding: 0 22px; white-space: pre; transition: background 0.12s; }
+  .codecard .cl.hi { background: #1E2A1E; }
+  .codecard .kw { color: var(--night-steel); font-weight: 650; }
+  .codecard .cm { color: #626A75; }
+  .codecard .val { color: var(--night-green); }
+  .ann-list { display: flex; flex-direction: column; gap: 8px; }
+  .ann {
+    text-align: left; background: var(--panel); border: 1px solid var(--line); border-radius: 9px;
+    padding: 11px 14px; cursor: pointer; font-family: var(--serif); color: var(--ink); font-size: 0.88rem;
+    transition: border-color 0.15s;
+  }
+  .ann:hover, .ann.active { border-color: var(--steel); }
+  .ann:focus-visible { outline: 3px solid var(--steel); outline-offset: 2px; }
+  .ann b { font-family: var(--mono); font-size: 0.8rem; color: var(--steel); font-weight: 650; }
+
+  /* ---------- survivor cards ---------- */
+  .survivors { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin: 22px 0; }
+  .survivor {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 16px 18px; box-shadow: var(--shadow);
+  }
+  .survivor .s-tag { font-family: var(--sans); font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; padding: 2px 9px; border-radius: 999px; }
+  .survivor.kill .s-tag { background: var(--green-soft); color: var(--green); }
+  .survivor.doc .s-tag { background: var(--slate-soft); color: var(--slate); }
+  .survivor.esc .s-tag { background: var(--red-soft); color: var(--red); }
+  .survivor h4 { margin: 10px 0 4px; font-size: 0.92rem; }
+  .survivor p { margin: 0; font-size: 0.85rem; color: var(--ink-2); }
+
+  /* ---------- tables ---------- */
+  .tablewrap { overflow-x: auto; margin: 20px 0; border: 1px solid var(--line); border-radius: 10px; }
+  table { border-collapse: collapse; width: 100%; font-size: 0.88rem; background: var(--panel); }
+  th {
+    font-family: var(--sans); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em;
+    text-align: left; color: var(--ink-2); padding: 10px 16px; border-bottom: 2px solid var(--line);
+    background: var(--panel-2);
+  }
+  td { padding: 10px 16px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  td:first-child { font-family: var(--sans); font-weight: 600; white-space: nowrap; }
+
+  /* ---------- thresholds ---------- */
+  .budgets { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; margin: 22px 0; }
+  .budget {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .budget .b-num { font-family: var(--sans); font-size: 1.9rem; font-weight: 700; color: var(--steel); font-variant-numeric: tabular-nums; }
+  .budget .b-unit { font-size: 0.95rem; color: var(--ink-2); font-weight: 500; }
+  .budget .b-what { font-family: var(--sans); font-size: 0.78rem; color: var(--ink-2); margin-top: 2px; }
+
+  .tree {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    font-family: var(--mono); font-size: 0.8rem; line-height: 1.75; padding: 18px 22px;
+    overflow-x: auto; white-space: pre;
+  }
+  .tree .dim { color: var(--ink-2); }
+  .tree .acc { color: var(--steel); }
+
+  footer { margin-top: 70px; border-top: 1px solid var(--line); padding-top: 22px; font-size: 0.85rem; color: var(--ink-2); font-family: var(--sans); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <p class="eyebrow">Field guide · agentic SDLC</p>
+    <h1>The Tran Forge Flow</h1>
+    <p class="lede">Derived from <span class="mono">unclebob/swarm-forge</span> and substantially diverged from it — the role-per-branch architecture is inherited, the Refactorer stage is gone, and three parallel rival-model reviews replace it. Invoked as <code>/tran-forge</code> (optionally with a Jira ticket). A rigid role-per-branch TDD pipeline where each role works on an isolated worktree branch and hands off <em>commit pointers</em> down the chain — the tests don't just pass, they're <em>proven to bite</em> by mutation testing, the diff is graded by a rival model, and a human drives the real thing before anything merges.</p>
+    <div class="meta-row">
+      <span class="chip steel">7 roles + team lead</span>
+      <span class="chip teal">2 approval gates + optional grilling</span>
+      <span class="chip">worktree-per-role · SHA handoffs</span>
+      <span class="chip green">mutation-tested to ≥ 85%</span>
+      <span class="chip">Codex OWASP + perf review</span>
+    </div>
+  </header>
+
+  <h2>Why this shape</h2>
+  <div class="prose">
+    <p>Tran Forge bets on <strong>process rigor</strong>: quality comes from a fixed assembly line of adversarially-separated specialists, each forbidden from touching the previous role's artifact. One role writes production code; three independent reviews grade it and every finding loops back to that role. You approve the specification, then the pipeline runs itself — coverage measured, mutants killed, and the diff put through three separate audits — design &amp; architecture, OWASP, performance — by a rival model — and hands you back a manual-test report to sign off before anything merges. Because that verification stack can only prove the code matches the spec — never that the spec matches your intent — a <strong>Phase 0 grilling</strong> (borrowed from the sibling flow) interviews you first whenever the requirement, or the Jira ticket behind it, arrives too vague to specify from.</p>
+  </div>
+  <div class="principles">
+    <div class="principle"><h4><span class="k">Adversarial separation</span></h4><p>The Coder can't edit specs — or restructure across modules on its own judgement. The Mutator can't touch production code. The reviewers and manual tester can't write anything at all. Every boundary is a check on the role before it, and every production write is reviewed.</p></div>
+    <div class="principle"><h4><span class="k">Commit pointers, not diffs</span></h4><p>Roles hand off a 10-char SHA. The receiver's first act is <code>git merge &lt;sha&gt;</code> into its own branch — git itself carries the work; reports carry only conclusions.</p></div>
+    <div class="principle"><h4><span class="k">Specs are executable</span></h4><p>Requirements become Gherkin <code>.feature</code> files that run as Cucumber tests. The approved spec isn't a document to interpret — it's the acceptance suite.</p></div>
+    <div class="principle"><h4><span class="k">Tests proven, not assumed</span></h4><p>PIT plants real bugs in production code and watches which survive; the Mutator then breaks each scenario's rule by hand to prove the <em>acceptance</em> suite bites too. A green suite that can't kill mutants is a finding, not a success.</p></div>
+    <div class="principle"><h4><span class="k">Graded by a rival model, three times, at once</span></h4><p>Phases 3–5 hand the cycle diff to the Codex CLI (<code>gpt-5.5</code> @ <code>xhigh</code>) three separate times: a design &amp; architecture pass, an OWASP Top 10 pass, a performance pass — <strong>spawned together and run in parallel</strong>, one read-only worktree each. Split rather than merged, because one reviewer asked for "any problems" returns the shallowest finding in each category and stops; parallel because they read the same commit and write nothing, so nothing orders them. A pipeline shouldn't be the only judge of its own output — and a skipped review is reported as skipped, never as passed.</p></div>
+    <div class="principle"><h4><span class="k">Someone actually uses it</span></h4><p>Green suites say the code satisfies the spec. Phase 7 boots the thing and drives it by hand — over HTTP, through <code>jshell</code>, or in a real browser — every scenario plus the edges the spec never thought to pin. A UI it had no way to look at is reported BLOCKED, never passed.</p></div>
+  </div>
+
+  <h2>The pipeline</h2>
+  <p class="prose">Click any phase to inspect it — who acts, in which worktree, and what SHA gets handed forward. One cycle handles one feature; the flow loops to the next feature after the merge.</p>
+  <div class="legend">
+    <span><span class="sw" style="background: var(--steel)"></span>machine acts</span>
+    <span><span class="sw" style="background: var(--teal)"></span>human in the loop</span>
+    <span><span class="sw" style="background: transparent; border: 1.5px dashed var(--teal); border-radius: 3px;"></span>approval gate</span>
+  </div>
+
+  <div class="pipeline-grid">
+    <div class="rail" id="rail" role="tablist" aria-label="Pipeline phases"></div>
+    <aside class="detail" id="detail" role="tabpanel" aria-live="polite"></aside>
+  </div>
+
+  <div class="night">
+    <p class="eyebrow">The signature mechanism</p>
+    <h3>The baton — SHA handoffs across worktree branches</h3>
+    <p>Each writing role owns a branch (<code style="background:#262C35">tran-forge-&lt;role&gt;</code>) in its own worktree under <code style="background:#262C35">.worktrees/</code>. Work travels as commit pointers: the receiver merges the sender's SHA into its own branch, works, commits, and reports a new SHA — all relayed by the lead, never role-to-role. The four read-only roles each get their own tree — three of them because the reviews run concurrently — and fast-forward to the SHA they're handed, reporting on it without creating one. Click a leg of the relay.</p>
+    <div class="baton" id="baton" role="tablist" aria-label="SHA handoff chain"></div>
+    <div class="baton-detail" id="batonDetail" role="tabpanel" aria-live="polite"></div>
+    <div class="baton-note">⛓ <span class="glow">Chain rule</span> — a merge conflict anywhere means <code style="background:#262C35">git merge --abort</code>, stop, report to the lead. No role ever resolves a conflict by guessing, pushes, or enters another role's worktree.</div>
+  </div>
+
+  <h2>The cast</h2>
+  <p class="prose">Seven pinned agents (<code>model: claude-opus-5</code>), the main thread as team lead, and one human holding two gates. Four of the seven are <strong>write-nothing</strong> roles — they have no <code>Edit</code>/<code>Write</code> tool at all, so "read-only" is enforced by the harness rather than by good intentions. All communication routes through the lead.</p>
+
+  <div class="agents">
+    <div class="agent">
+      <div class="a-head"><h3>tran-forge-specifier</h3></div>
+      <div class="a-role">Stage 1 · requirements → executable spec</div>
+      <p>Converts informal requirements into deterministic Gherkin: one behavior per scenario, business language only, concrete example values, anything variable (time, randomness, ordering) pinned or injected.</p>
+      <span class="wt">works on: base branch (main checkout)</span>
+      <div class="a-label">The gate protocol</div>
+      <ul><li>Drafts <code>.feature</code> files <strong>uncommitted</strong>, reports the full Gherkin inline</li><li>Waits for the user's verdict via the lead; revises in a loop</li><li>Commits spec files only, only after "approved" is relayed</li></ul>
+      <div class="a-label">Never</div>
+      <ul class="never"><li>Writes production code, test code, or step definitions; invents an interpretation for ambiguous requirements — those become numbered questions</li></ul>
+    </div>
+
+    <div class="agent">
+      <div class="a-head"><h3>tran-forge-coder</h3></div>
+      <div class="a-role">Stage 2 · strict red/green TDD · the only writer of production code</div>
+      <p>Merges the spec SHA, then drives one Gherkin scenario at a time: thin step definitions that delegate immediately, and an inner loop of ONE failing unit test → <em>see it fail</em> → minimal production code → green → tidy. Every review finding in the pipeline comes back here.</p>
+      <span class="wt">works in: .worktrees/coder</span>
+      <div class="a-label">Definition of done</div>
+      <ul><li>Every scenario of the feature passes AND the full unit suite is green</li><li>Unit tests stay separate from acceptance tests — the unit suite is what kills mutants later</li><li>All IO behind ports; the domain core stays framework-free</li><li>Coverage carried to ≥ 90% on touched classes, plus property tests (QuickTheories) where an invariant beats examples — and <strong>every gap-closing test earns a red phase</strong>: break the branch it covers, prove the test fails, revert. A test that passes against broken code is tautological and gets rewritten</li></ul>
+      <div class="a-label">Tidy — the third beat, and it's the Coder's</div>
+      <ul><li>After each green: rename what's misnamed, extract what you just duplicated, collapse what grew two jobs — <em>in the unit you just greened</em>, while you still remember why. Suite re-run; red → undo the tidy</li><li>The boundary is <strong>scope, not permission</strong>: cross-cutting restructuring isn't the Coder's call. It arrives as a finding from the architecture review, because an unreviewed redesign is exactly what the reviews exist to catch</li></ul>
+      <div class="a-label">Second mode: <code>review-fix</code></div>
+      <ul><li>One finding per spawn. Merge, establish a green baseline, apply in small steps, run the suite after each — <strong>a red step is undone, not fixed forward</strong></li><li>"Behavior-preserving" means no test may change. <strong>If a test has to change, the fix isn't behavior-preserving</strong> — stop and report rather than editing the test to match, because that destroys the only evidence behavior held</li><li>A finding needing new behavior is test-first, as always. A security fix with no test proving the hole is shut hasn't been shown to shut it</li></ul>
+      <div class="a-label">Never</div>
+      <ul class="never"><li>Edits <code>.feature</code> files — a wrong spec is escalated, not patched</li><li>Restructures across modules on its own judgement; weakens a spec-driven test; edits a test to make its own "behavior-preserving" fix pass</li><li>Implements a <code>needs-spec-change</code> finding, however obvious the fix — that's behavior you approved at Gate 1, so it goes back to the Specifier</li></ul>
+    </div>
+
+    <div class="agent">
+      <div class="a-head"><h3>tran-forge-architecture-reviewer</h3></div>
+      <div class="a-role">Stage 3 · the outside eye on the design · runs in parallel</div>
+      <p>Fast-forwards to the Coder's SHA and hands the cycle diff to the <strong>Codex CLI</strong> (<code>gpt-5.5</code> @ <code>xhigh</code>, <code>-s read-only</code>) for a design and architecture audit — dependency rule, ports &amp; adapters, information hiding, boundaries, SOLID where it actually bites. Measured against the project article's <em>own</em> architecture rules, pasted into the prompt verbatim, so the review grades this codebase rather than a textbook.</p>
+      <span class="wt">works in: .worktrees/review-arch (read-only)</span>
+      <div class="a-label">Rules, not taste</div>
+      <ul><li>A finding survives triage only if it names a stated project rule, a dependency-direction violation, an untestable-without-the-framework business rule, or a concrete future change the shape makes expensive — "could be more elegant" is dropped and counted</li><li>Marks which of the Coder's own escalations it independently confirms, so agreement between two passes costs the lead one item, not two</li><li>The pipeline's <strong>only</strong> structural check: the Coder tidies what it greens but is barred from cross-cutting redesign, so what this stage misses reaches base unexamined. Findings route back to the <strong>Coder</strong> in <code>review-fix</code> mode</li></ul>
+      <div class="a-label">Never</div>
+      <ul class="never"><li>Writes anything — no code, no commits; and never reviews security or performance, which are the next two stages' beats</li><li>Proposes a rewrite of a design that satisfies the project's stated rules simply because it would have structured it differently</li></ul>
+    </div>
+
+    <div class="agent">
+      <div class="a-head"><h3>tran-forge-security-reviewer</h3></div>
+      <div class="a-role">Stage 4 · the rival auditor · runs in parallel</div>
+      <p>Fast-forwards to the Coder's SHA and hands the cycle diff to the <strong>Codex CLI</strong> (<code>gpt-5.5</code> @ <code>xhigh</code>, <code>-s read-only</code>) for an OWASP Top 10 audit — injection, broken access control, crypto failures, SSRF, mass assignment, PII in logs. A different model family grading the work is the whole point.</p>
+      <span class="wt">works in: .worktrees/review-security (read-only)</span>
+      <div class="a-label">Owns the triage, not just the relay</div>
+      <ul><li>Verifies every Codex finding against the real code and drops the ones about untouched or unreachable paths — reporting how many and why</li><li>Re-decides each finding's <code>behavior-preserving</code> vs <code>needs-spec-change</code> flag: a fix that adds a 403 or redacts a field is a <em>spec change</em>, which stops the pipeline for you</li></ul>
+      <div class="a-label">Never</div>
+      <ul class="never"><li>Writes anything — no code, no commits; fixes route through the lead to the Coder</li><li>Runs Codex with a writable sandbox, or reports an unrun review as clean</li></ul>
+    </div>
+
+    <div class="agent">
+      <div class="a-head"><h3>tran-forge-performance-reviewer</h3></div>
+      <div class="a-role">Stage 5 · the volume skeptic · runs in parallel</div>
+      <p>The same Codex reviewer pattern, aimed at what a green suite structurally cannot see: N+1 queries, unbounded reads, missing pagination, eager fetches, blocking IO on request threads, accidental O(n²), remote calls inside transactions. Small fixtures hide all of it.</p>
+      <span class="wt">works in: .worktrees/review-perf (read-only)</span>
+      <div class="a-label">Evidence discipline</div>
+      <ul><li>Every finding carries a <em>cost model</em> ("1 + N queries, N = order lines") and the volume it starts hurting at — not the word "slow"</li><li>Separates request paths from startup/batch paths before calling anything hot, and labels findings <em>reasoned</em> vs <em>measured</em> honestly</li></ul>
+      <div class="a-label">Never</div>
+      <ul class="never"><li>Writes anything, or "proves" a finding with a benchmark that mutates the repo or a database</li><li>Reports micro-optimizations, or redesigns of code this cycle never touched</li></ul>
+    </div>
+
+    <div class="agent">
+      <div class="a-head"><h3>tran-forge-mutator</h3></div>
+      <div class="a-role">Stage 6 · the adversary</div>
+      <p>Merges the reviewed Coder SHA and attacks the tests: PIT plants mutants (differentially on this cycle's classes first, then a full run) and every survivor gets classified and dispatched. Its entire write surface is <strong>test code only</strong>.</p>
+      <span class="wt">works in: .worktrees/mutator</span>
+      <div class="a-label">Also owns</div>
+      <ul><li>The <strong>Gherkin sensitivity sweep</strong> — for <em>every</em> scenario, not just doubtful ones: break the rule it states, run the acceptance suite, prove that scenario fails, <code>git checkout --</code> revert. This is mutation testing the spec layer by hand, because PIT can't reach through the Cucumber engine</li><li>The final verification: build ✓, all tests ✓, coverage ≥ 90% ✓, mutation ≥ 85% ✓</li></ul>
+      <div class="a-label">Never</div>
+      <ul class="never"><li>Edits production code — the lead checks its diff paths, and the sweep's experiments must leave the production diff empty</li><li>Deletes or weakens a test to inflate the score</li></ul>
+    </div>
+
+    <div class="agent">
+      <div class="a-head"><h3>tran-forge-manual-tester</h3></div>
+      <div class="a-role">Stage 7 · the first user</div>
+      <p>Fast-forwards to the final SHA and drives the assembled thing by hand. Modes <em>stack</em>: <code>browser</code> drives the rendered UI through Playwright MCP, <code>service</code> boots the app and hits it with real <code>curl</code> traffic, <code>library</code> works the public API through <code>jshell</code>. A numbered plan — Setup / Action / Expected — then real output pasted into the report.</p>
+      <span class="wt">works in: .worktrees/verify (read-only)</span>
+      <div class="a-label">Coverage bar</div>
+      <ul><li>Every approved scenario exercised manually — a scenario that can't be reached by hand is itself a finding</li><li><strong>Plus the edges the Gherkin never pinned</strong>: null/malformed input, boundaries, repeat invocation, error paths, and one "user does it wrong" sequence. That gap is why the phase exists</li><li>Tails the app log: an unexpected ERROR behind a 200 response is still a finding</li></ul>
+      <div class="a-label">The UI guard</div>
+      <ul><li><code>curl</code> can't run JavaScript: against an SPA it returns <code>200</code> and an empty root div — a <em>true observation supporting a false conclusion</em>, the most dangerous report this phase can produce</li><li>So if the diff touched <code>ui_src_paths</code> and no UI-capable mode is available, those items are <strong>⚠ BLOCKED, never ✅ PASS</strong>, and the gap goes to you at Gate 2</li><li>Browser items assert on the accessibility snapshot (structured, reliable) with screenshots as your evidence; a UI verdict without a screenshot isn't evidence</li><li>A browser scenario that fails is re-run once: fails twice → ❌, fails-then-passes → <strong>⚠ FLAKY</strong>, never ❌ — browser flake must not burn a full Coder → reviewers → Mutator re-verify loop</li></ul>
+      <div class="a-label">Never</div>
+      <ul class="never"><li>Edits code or commits — a manual failure becomes an automated test in the Coder's hands first</li><li>Marks a scenario it didn't run as PASS, or a UI item ✅ on the strength of an API response</li><li>Presents browser device emulation as native-mobile coverage — a native app is outside this pipeline's stack and is reported BLOCKED</li><li>Leaves a process running, a browser open, or seeded data behind</li></ul>
+    </div>
+
+    <div class="agent is-human">
+      <div class="a-head"><h3>team lead <span style="font-family: var(--sans); font-weight: 400; font-size: 0.8rem; color: var(--ink-2);">(main thread)</span></h3></div>
+      <div class="a-role">Orchestration · the relay</div>
+      <p>Optionally pulls the Jira ticket and distils it into a plain-text requirement, creates the worktrees in preflight, spawns one role at a time, relays every SHA and escalation (roles never message each other), runs both human gates, and performs the cycle-close merge.</p>
+      <div class="a-label">Bounded escalation loops</div>
+      <ul><li><strong>Every</strong> reviewer / Mutator / manual-test finding routes to the <strong>Coder</strong> in <code>review-fix</code> mode — one finding per spawn, never a batch, because batching defeats the undo-on-red protocol — bounded to ~2 iterations; leftovers go in the cycle report</li><li>Checks the Mutator's diff touches tests only; rejects the handoff otherwise</li><li>A review Blocker whose fix would change observable behavior is <strong>not</strong> routed to the Coder — it stops the pipeline for you, because that's a spec change</li><li>Runs the Phase 0 grilling itself (main thread) when a requirement needs forming, and writes the refined entry back to <code>requirements.txt</code></li></ul>
+    </div>
+
+    <div class="agent is-human">
+      <div class="a-head"><h3>you <span style="font-family: var(--sans); font-weight: 400; font-size: 0.8rem; color: var(--ink-2);">(the human)</span></h3></div>
+      <div class="a-role">Two decisions, total leverage</div>
+      <p><strong>Gate 1:</strong> you approve the Gherkin. Because the spec is executable, approving it defines done for the whole autonomous run. <strong>Gate 2:</strong> you sign off the manual-test report before anything merges back. Then you decide what to keep and what's next.</p>
+      <div class="a-label">Yours alone</div>
+      <ul><li>Spec approval and every spec change thereafter — including any security or performance fix that would change behavior</li><li>Manual-test sign-off (you may accept known issues; the report records exactly what you accepted)</li><li>Whether the requirement entry and <code>.feature</code> files stay in the repo at cycle close</li><li>Pushing, and anything written back to Jira — <strong>no agent ever pushes</strong></li></ul>
+    </div>
+  </div>
+
+  <h2>The constitution — pushed context, read in order</h2>
+  <p class="prose">Tran Forge is a <strong>push</strong> system: before any work, every role reads the same four files, in the same order. This buys uniform discipline at the cost of fixed context overhead per agent — the opposite trade to its sibling flow's pull-based playbook.</p>
+  <div class="constitution">
+    <div class="consti"><h4>discipline.md</h4><p>The engineering ethos: simplicity, TDD, determinism, ask-don't-guess, honest reporting. Applies to every role equally.</p></div>
+    <div class="consti"><h4>workflow.md</h4><p>The topology: your branch is your world, handoff = commit pointer, commit policy, forbidden operations, all comms lead-routed.</p></div>
+    <div class="consti"><h4>tran-forge.config.md</h4><p>Per-project truth: base branch, layout, build/test/coverage/mutation commands, thresholds. <strong>Wins every disagreement.</strong></p></div>
+    <div class="consti"><h4>article-java-maven.md</h4><p>The stack article: Java 25 / Spring Boot 4 / Maven idioms, architecture rules, test layout. Swappable per project via the config's <code>article:</code> key.</p></div>
+  </div>
+
+  <h2>Anatomy of the gate artifact — the Gherkin spec</h2>
+  <p class="prose">The one thing you approve. Hover or tap an annotation to see which lines it explains — every rule exists to make the spec <em>deterministic and mutation-sensitive</em>.</p>
+  <div class="anatomy">
+    <div class="codecard" id="specCode">
+<div class="cl" data-k="feature"><span class="kw">Feature:</span> Spare scoring</div>
+<div class="cl" data-k="feature">  A spare adds the next roll as a bonus to the frame.</div>
+<div class="cl" data-k="bg"></div>
+<div class="cl" data-k="bg"><span class="kw">  Background:</span></div>
+<div class="cl" data-k="bg"><span class="kw">    Given</span> a new bowling game</div>
+<div class="cl" data-k="name"></div>
+<div class="cl" data-k="name"><span class="kw">  Scenario:</span> a spare adds the next roll as a bonus</div>
+<div class="cl" data-k="values"><span class="kw">    When</span> the player rolls <span class="val">5, 5, 3</span> and misses the rest</div>
+<div class="cl" data-k="values"><span class="kw">    Then</span> the total score is <span class="val">16</span></div>
+<div class="cl" data-k="outline"></div>
+<div class="cl" data-k="outline"><span class="kw">  Scenario Outline:</span> frame scores accumulate</div>
+<div class="cl" data-k="outline"><span class="kw">    When</span> the player rolls <span class="val">&lt;rolls&gt;</span></div>
+<div class="cl" data-k="outline"><span class="kw">    Then</span> the total score is <span class="val">&lt;total&gt;</span></div>
+<div class="cl" data-k="examples"><span class="kw">    Examples:</span></div>
+<div class="cl" data-k="examples">      | rolls        | total |</div>
+<div class="cl" data-k="examples">      | 1,4,4,5      | 14    |  <span class="cm"># every column is used by a step</span></div>
+    </div>
+    <div class="ann-list" id="annList">
+      <button class="ann" data-k="feature"><b>Feature</b> — business language only. No class names, endpoints, or data structures anywhere in the Gherkin.</button>
+      <button class="ann" data-k="bg"><b>Background</b> — extracted when two or more scenarios share identical Given setup. Duplication in specs is a smell too.</button>
+      <button class="ann" data-k="name"><b>Scenario name</b> — states the <em>rule</em>, not the mechanics. "A spare adds the next roll" — never "test rolls 5,5,3".</button>
+      <button class="ann" data-k="values"><b>Concrete values</b> — pinned, deterministic examples. Same input, same result, every run; time and randomness are injected, never ambient.</button>
+      <button class="ann" data-k="outline"><b>Scenario Outline</b> — tabular rules get parameterized scenarios instead of copy-paste variants.</button>
+      <button class="ann" data-k="examples"><b>Examples</b> — dead columns are pruned: a parameter no step uses weakens the mutation-sensitivity review later.</button>
+    </div>
+  </div>
+
+  <h2>What the Mutator does with survivors</h2>
+  <p class="prose">Every mutant that survives the suite gets classified — and each class has exactly one sanctioned response. This taxonomy is why the 85% score means something.</p>
+  <div class="survivors">
+    <div class="survivor kill"><span class="s-tag">strengthen</span><h4>Missing assertion</h4><p>A test executes the mutated line but never checks the result. Fix: sharpen that test's assertions.</p></div>
+    <div class="survivor kill"><span class="s-tag">strengthen</span><h4>Missing test case</h4><p>No test exercises the behavior the mutant breaks. Fix: add a focused unit test, re-run targeted PIT, confirm the kill.</p></div>
+    <div class="survivor doc"><span class="s-tag">document</span><h4>Equivalent mutant</h4><p>The mutation is provably behavior-identical. Documented with a one-line justification and excluded from the score — never chased.</p></div>
+    <div class="survivor esc"><span class="s-tag">escalate</span><h4>Production-only kill</h4><p>Killable only by changing production code (missing seam, unreachable branch). Finding for the lead → routed to the Coder, test-first.</p></div>
+  </div>
+
+  <h2>The bar to merge</h2>
+  <p class="prose">Nothing reaches the base branch until the Mutator's final verification passes all four checks, no review Blocker is open, you've signed off the manual-test report, and the lead re-runs the suite after the merge.</p>
+  <div class="budgets">
+    <div class="budget"><div class="b-num">85<span class="b-unit">% min</span></div><div class="b-what">mutation score — documented equivalents excluded</div></div>
+    <div class="budget"><div class="b-num">90<span class="b-unit">% min</span></div><div class="b-what">line coverage on classes touched this cycle</div></div>
+    <div class="budget"><div class="b-num">0<span class="b-unit"> blockers</span></div><div class="b-what">open Blocker findings from the OWASP + performance reviews</div></div>
+    <div class="budget"><div class="b-num">2<span class="b-unit"> gates</span></div><div class="b-what">human stops per cycle — Gherkin approval, manual-test sign-off</div></div>
+    <div class="budget"><div class="b-num">~2<span class="b-unit"> loops</span></div><div class="b-what">bounded escalation iterations before findings go to the cycle report</div></div>
+  </div>
+
+  <h2>Strengths over the Matt Pocock flow</h2>
+  <div class="prose">
+    <p>The sibling flow bets on alignment and small contexts; Tran Forge bets on <strong>verification depth and role adversarialism</strong>. Where it wins:</p>
+  </div>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Where it wins</th><th>Matt Pocock</th><th>Tran Forge</th></tr></thead>
+    <tbody>
+      <tr><td>Test quality</td><td>Reviewer checks that tests <em>exist</em> and criteria are covered — nothing proves they'd catch a bug</td><td><strong>PIT proves the tests bite:</strong> real bugs are planted and must die. A tautological test cannot survive this pipeline</td></tr>
+      <tr><td>Spec precision</td><td>The PRD is prose — precise, but interpreted by each implementer</td><td><strong>The spec executes.</strong> Approved Gherkin <em>is</em> the acceptance suite; there is no interpretation gap between "what you approved" and "what is tested"</td></tr>
+      <tr><td>Role adversarialism</td><td>Implementer and reviewer are separated, but both work from the same issue text</td><td>Every artifact has a role forbidden from touching it: specs (Coder can't), module structure (Coder can't, on its own judgement), production code (Mutator can't), anything at all (the three reviewers and the manual tester). Each stage audits the last</td></tr>
+      <tr><td>Refactoring &amp; architecture</td><td>Deep-modules guidance is a playbook file an implementer <em>may</em> pull</td><td>Tidiness is the Coder's third TDD beat, in the unit it just greened. Structure is a <strong>rival-model audit</strong> against the project's own stated rules, applied back through the Coder under a hard protocol: suite after every step, red steps undone not fixed forward, no test edited to make a "behavior-preserving" fix pass</td></tr>
+      <tr><td>Human time per feature</td><td>Three touchpoints (grilling, PRD gate, backlog gate) before autonomy — always</td><td><strong>Two decisions:</strong> approve the Gherkin, then sign off the manual test. The Phase 0 grilling runs only when the requirement needs forming; everything between the gates is autonomous</td></tr>
+      <tr><td>Adversarial review</td><td>A machine pre-reviewer of the same model family checks the bullet's diff against its issue</td><td><strong>A rival model grades the diff, three times, in parallel.</strong> Phases 3–5 spawn the Codex CLI as three concurrent reviews — design/architecture, OWASP Top 10, performance — each with its own narrow brief, fresh context and read-only worktree. Each Claude-side reviewer triages its findings rather than forwarding them blind, and the lead de-duplicates across all three before the Coder sees anything</td></tr>
+      <tr><td>Merge confidence</td><td>Human QA after the shift is the real gate</td><td>Machine-certified <em>and</em> hand-driven: build, suite, coverage ≥ 90%, mutation ≥ 85%, zero review Blockers, then a manual pass that also probes the edges the spec never pinned</td></tr>
+    </tbody>
+  </table></div>
+  <div class="prose">
+    <p>Honest trade-off: each role's context carries a whole feature plus the full pushed constitution, escalation round-trips accumulate in the same windows, and mid-cycle state (handoff SHAs in reports) doesn't survive a killed session the way the sibling's file backlog does. Tran Forge buys <strong>provable correctness per feature</strong>; the sibling buys <strong>bounded contexts over a long backlog</strong>. They compose: a grilling/PRD front end feeding a forge-grade verify stage is each flow covering the other's blind spot.</p>
+  </div>
+
+  <h2>What lands in your repo</h2>
+  <div class="tree"><span class="dim">your-project/</span>
+├── tran-forge.config.md          <span class="dim"># commands, layout, thresholds — wins all disagreements</span>
+├── requirements.txt               <span class="dim"># plain-text features (or a distilled Jira ticket) — refined by the Phase 0 grilling when vague</span>
+├── <span class="acc">.worktrees/</span>                    <span class="dim"># created by the lead in preflight (git-excluded)</span>
+│   ├── coder/                     <span class="dim"># branch tran-forge-coder</span>
+│   ├── mutator/                   <span class="dim"># branch tran-forge-mutator</span>
+│   ├── review-arch/               <span class="dim"># branch tran-forge-review-arch — read-only</span>
+│   ├── review-security/           <span class="dim"># branch tran-forge-review-security — read-only  } the 3 reviews run in parallel</span>
+│   ├── review-perf/               <span class="dim"># branch tran-forge-review-perf — read-only</span>
+│   └── verify/                    <span class="dim"># branch tran-forge-verify — read-only: manual tester, no commits ever</span>
+├── src/test/resources/features/   <span class="dim"># the approved Gherkin (Specifier, on base) — kept or dropped at cycle close, your call</span>
+└── .claude/
+    ├── agents/tran-forge-*.md    <span class="dim"># specifier, coder, architecture-reviewer, security-reviewer, performance-reviewer, mutator, manual-tester</span>
+    ├── skills/tran-forge/        <span class="dim"># SKILL.md + constitution/ + config template</span>
+    └── skills/grill-me/           <span class="dim"># Phase 0 requirements grilling — also standalone /grill-me</span></div>
+
+  <h2>Running it</h2>
+  <div class="tablewrap"><table>
+    <thead><tr><th>Invocation</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td><code>/tran-forge</code></td><td>Preflight (env, config, clean tree, six worktrees, toolchain + Codex smoke) → next unimplemented feature from <code>requirements.txt</code> → Phase 0 grilling if the entry is vague → the seven-stage cycle → manual-test sign-off → merge → keep-artifacts? → cycle report → "next feature?"</td></tr>
+      <tr><td><code>/tran-forge PROJ-1234</code></td><td>Starts from a <strong>Jira ticket</strong>: pulls it through the Atlassian MCP, distils it into a plain-text requirement entry with an explicit <em>Unknowns</em> list, and runs the grilling on those unknowns. No MCP → it asks you to paste the ticket rather than guessing. Jira is read-only unless you say otherwise, at cycle close</td></tr>
+      <tr><td><code>/tran-forge &lt;feature&gt;</code></td><td>Same cycle, targeting the named feature</td></tr>
+      <tr><td><code>/grill-me &lt;feature&gt;</code></td><td>The grilling standalone — batch-refine several <code>requirements.txt</code> entries in one product-thinking sitting, days before any cycle runs</td></tr>
+      <tr><td>cycle report</td><td>Per-role SHAs, test counts, coverage, mutation score, OWASP + performance findings (or SKIPPED + why), per-scenario Gherkin sensitivity, manual-test results and what you signed off, documented equivalents, the retention decision, and open escalations — your calls for next cycle</td></tr>
+      <tr><td>demo</td><td><code>cd example &amp;&amp; ./setup.sh</code> → a bowling-kata repo with the flow installed; the pipeline pauses twice — the Gherkin, then the manual-test report</td></tr>
+    </tbody>
+  </table></div>
+
+  <footer>
+    Tran Forge Flow · <span class="mono">github.com/johntran777/ai-agent-flow · tran-forge-flow/</span> · Steel marks machine action; teal marks the two human gates. No agent ever pushes.
+  </footer>
+</div>
+
+<script>
+  const phases = [
+    {
+      id: "preflight", phase: "Phase 0", title: "Preflight", actor: "Team lead", kind: "machine",
+      sub: "Worktrees are built here — by the lead, never the agents",
+      body: [
+        "Verifies agent-teams env, git repo, and a clean tree on base — dirty stops the flow; nothing is ever stashed.",
+        "Reads tran-forge.config.md (offers to create it) and the stack article it points at — including the Intake / Artifacts / Review / Manual-test blocks.",
+        "Creates or reuses the six worktrees (.worktrees/coder, /mutator, /review-arch, /review-security, /review-perf, /verify) on their tran-forge-* branches, excludes them via .git/info/exclude, and runs the full suite once — must start green.",
+        "Smoke-tests the Codex CLI and the configured model when the reviews are enabled; a missing binary is surfaced now, not discovered at Phase 3. One check covers all three reviews — they share the binary and the model.",
+        "Optional Jira intake: pulls the ticket through the Atlassian MCP and distils it into a plain-text requirements.txt entry with an explicit Unknowns list. MCP unavailable → asks you to paste the ticket; never invents contents.",
+        "Picks the feature: the argument, the ticket, or the next unimplemented item in requirements.txt."
+      ],
+      artifact: ".worktrees/{coder,mutator,review-arch,review-security,review-perf,verify} on tran-forge-* branches"
+    },
+    {
+      id: "grill", phase: "Phase 0", title: "Refine the requirement", actor: "Lead ⇄ You", kind: "human",
+      sub: "The grilling — skipped when the requirement is already well-formed",
+      gate: "INTERACTIVE — runs only when the entry is vague",
+      body: [
+        "The lead judges the chosen requirements.txt entry against a bar: purpose, observable end-state behavior, edge cases, non-goals, success criteria — concrete enough that the Specifier could write deterministic Gherkin without inventing an interpretation. Kata-style entries usually pass and skip straight to Stage 1; a Jira-derived entry with open unknowns never does.",
+        "A vague, one-line, or contradictory entry triggers the grill-me protocol in the main thread: one design-changing question at a time, until the played-back design concept is explicitly confirmed.",
+        "The confirmed concept is written back as the feature's requirements.txt entry — plain text, no Gherkin (formalizing stays the Specifier's job) — approved by you, and committed on base so the tree is clean for Stage 1.",
+        "Why it exists: the pipeline's verification stack proves the code matches the spec; this phase is the only thing proving the spec matches your intent."
+      ],
+      artifact: "requirements.txt entry rewritten → commit: Requirements: <feature> (refined by grilling)"
+    },
+    {
+      id: "specify", phase: "Stage 1", title: "Specify", actor: "Specifier → You", kind: "human",
+      sub: "Requirements become executable Gherkin — and you approve it",
+      gate: "GATE 1 — you approve the spec",
+      body: [
+        "The Specifier drafts .feature files uncommitted, in business language, deterministic, one behavior per scenario — and reports the full Gherkin inline with any open questions.",
+        "You approve or request changes; the loop repeats until approved. Ambiguity becomes numbered questions, never an invented interpretation.",
+        "You also rule on the cross-cutting decisions block — timezone/'today', i18n, null/empty, HTTP error codes, ordering/pagination — the things otherwise locked in silently by the first implementation choice.",
+        "Only after approval does it commit — spec files only, on the base branch — and report SHA_spec. The pipeline then runs autonomously until Gate 2."
+      ],
+      artifact: "src/test/resources/features/*.feature → SHA_spec (By Specifier.)"
+    },
+    {
+      id: "code", phase: "Stage 2", title: "Code", actor: "Coder", kind: "machine",
+      sub: "Strict red/green until every scenario passes",
+      body: [
+        "Merges SHA_spec into its branch, then works one scenario at a time: thin step definitions that delegate immediately — no logic in steps.",
+        "Inner loop: ONE focused failing unit test → SEE it fail → minimal production code → green. A test that passes immediately means reassess, not proceed.",
+        "Done = every scenario of the feature passes AND the full unit suite is green AND the build is clean. Unit tests stay separate from acceptance tests — they are what kills mutants later."
+      ],
+      artifact: "SHA_code (By Coder.) — scenarios n/n, unit suite green"
+    },
+    {
+      id: "review", phase: "Stages 3–5", title: "Review ×3", actor: "Architecture + Security + Perf reviewers", kind: "machine",
+      sub: "A rival model grades the diff three times — design, OWASP Top 10, performance",
+      body: [
+        "Three separate phases, spawned in ONE message and run concurrently, never merged into one pass: a single reviewer asked for \"any problems\" returns the shallowest finding in each category and stops. Three narrow briefs, three fresh contexts, one beat each — and since they consume the same commit and produce none, nothing orders them. Wall-clock becomes the slowest single review rather than the sum.",
+        "Each gets its OWN read-only worktree (.worktrees/review-arch, /review-security, /review-perf) and its own scratch directory, then fast-forwards its own branch to SHA_code and builds the cycle diff (SHA_spec..HEAD). One tree each is not tidiness: git cannot check a branch out twice, three agents would contend for one index lock, and a shared scratch dir means three agents overwriting one cycle.diff mid-read. They are write-nothing roles: no Edit/Write tool, no commits, and Codex itself runs with -s read-only so it cannot touch the repo either.",
+        "Stage 3 — design & architecture: dependency rule, ports & adapters, information hiding, boundaries, SOLID. Graded against the project article's own architecture rules, pasted into the Codex prompt verbatim. This is the pipeline's ONLY structural check — the Coder tidies what it greens but is barred from cross-cutting redesign, so whatever this phase misses reaches base unexamined.",
+        "Stage 4 — security: the OWASP Top 10 — access control, crypto, injection (including JPQL string-building and log injection), insecure design, misconfiguration, vulnerable new dependencies, auth, deserialization/mass assignment, logging of PII, SSRF.",
+        "Stage 5 — performance: what small fixtures hide — N+1s, unbounded reads, missing pagination, eager fetching, un-indexable predicates, remote calls inside transactions, accidental O(n²), per-call construction of expensive objects.",
+        "Each Claude-side reviewer TRIAGES Codex rather than forwarding it: findings about untouched or unreachable code are dropped and counted, every finding is re-flagged behavior-preserving or needs-spec-change, and each reviewer stays off the other two's beats so the lead never triages the same defect twice.",
+        "The lead waits for ALL THREE before dispatching anything — a fix mid-flight would move the code underneath a reviewer still reading it — then consolidates: dedupe across reports (an unbounded query is both a perf and a security finding), rank, and resolve any contradiction between reviewers before the Coder ever sees it. The consolidated list routes back to the CODER, which works it ONE finding at a time in review-fix mode: green baseline first, suite after every step, red steps undone rather than fixed forward, and no test edited to make a \"behavior-preserving\" fix pass. Only the affected reviewer re-runs on the new SHA (~2 bounded loops). Blockers that would change observable behavior — a new 403, a redacted field, added pagination — STOP the pipeline: that is a spec change, and specs belong to you at Gate 1. Codex missing or broken → that one phase is reported SKIPPED, never as passed, and the other two still run."
+      ],
+      artifact: "three review reports (Blocker / Should-fix / Nice-to-have, each flagged for spec impact) — no new SHA"
+    },
+    {
+      id: "mutate", phase: "Stage 6", title: "Mutate", actor: "Mutator", kind: "machine",
+      sub: "Plant bugs; whatever survives is a defect in the tests",
+      body: [
+        "Merges the reviewed Coder SHA, runs PIT differentially on this cycle's classes, then in full. Every survivor is classified: missing assertion / missing test / equivalent (documented) / production-only kill (escalated).",
+        "Strengthens TESTS ONLY — the lead diff-checks that no production file changed. Production-only kills route to the Coder via the lead.",
+        "Runs the Gherkin sensitivity sweep on EVERY scenario, because PIT excludes the Cucumber suite and so nothing automated ever grades it: break the rule the scenario states, run the acceptance suite, prove that scenario fails, then git checkout -- revert. An INSENSITIVE scenario is a finding for you — a scenario that doesn't test what it claims.",
+        "Then the final verification: build, suite, coverage ≥ 90%, mutation ≥ 85% — and a check that the sweep left the production diff empty."
+      ],
+      artifact: "SHA_final (By Mutator.) — score, survivor disposition, per-scenario sensitivity table"
+    },
+    {
+      id: "manual", phase: "Stage 7", title: "Manual test", actor: "Manual tester → You", kind: "human",
+      sub: "Someone actually drives it — then you sign off",
+      gate: "GATE 2 — you sign off the report",
+      body: [
+        "The manual tester fast-forwards .worktrees/verify to SHA_final and drafts a numbered plan (Setup / Action / Expected) from the approved Gherkin plus the edges the Gherkin never pinned. Browser-driven items are prefixed [UI] so you can see which ones looked at a screen.",
+        "Modes stack rather than compete. browser drives the rendered UI through Playwright MCP at ui_base_url, asserting on the accessibility snapshot with screenshots as evidence. service boots the app (run_app) and drives it with real curl traffic, tailing the log — an unexpected ERROR behind a 200 is still a finding. library drives the public API through jshell; correct for katas and domain libraries. auto resolves by what the diff touched: ui_src_paths → browser, a network edge → service, neither → library.",
+        "The UI guard: curl cannot execute JavaScript, so against an SPA it returns 200 and an empty root div — true evidence for a false conclusion. If the diff touched ui_src_paths and no UI-capable mode is available, those items are ⚠ BLOCKED, never ✅ PASS, and the gap reaches you at Gate 2. Browser flake is handled separately: a failing browser scenario is re-run once and reported ⚠ FLAKY if it then passes, so it never burns a Coder re-verify loop.",
+        "Scope limit worth knowing: browser mode covers web UIs including responsive layouts, but device emulation is a resized browser — not a native iOS/Android/React Native/Flutter app. A native mobile target is outside this pipeline's JVM stack entirely and is reported BLOCKED, never approximated.",
+        "Beyond the scenarios: null/malformed input, boundaries, repeat invocation, error paths, and one 'user does it wrong' sequence. A scenario that cannot be reached by hand is itself a finding — the spec describes something the assembled app can't do.",
+        "It cannot edit code or commit: a manual failure goes to the Coder in review-fix mode to become an automated test first, then the Mutator re-verifies, then a re-test.",
+        "You read the report and sign off — or sign off with known issues, in which case the cycle report records exactly what you accepted."
+      ],
+      artifact: "manual-test report (plan with [UI] items, per-item ✅/❌/⚠ FLAKY/⚠ BLOCKED, screenshots, logs, cleanup, verdict) — no new SHA"
+    },
+    {
+      id: "merge", phase: "Cycle close", title: "Merge, keep, report", actor: "Lead → You", kind: "human",
+      sub: "Certified merge, artifact retention, then your decisions for next cycle",
+      gate: "RETENTION + CYCLE REPORT — you pick what stays, and what's next",
+      body: [
+        "The lead re-checks the clean tree and merges: git merge --no-ff SHA_final onto base, with every cycle SHA in the message — then runs the full suite on base one more time.",
+        "Artifact retention: keep the requirement entry and the .feature files, or drop them? Defaults come from the config (keep_requirements / keep_features), but the lead always asks. Dropping happens in a separate follow-up commit — the merge is never rewritten — and never leaves a dangling step definition or a red suite.",
+        "You get the cycle report: scenarios, per-role SHAs, test counts, coverage, mutation score, all three review results — design/architecture, security, performance — reported separately (or SKIPPED + why, per review), per-scenario Gherkin sensitivity, manual-test results and what you signed off, documented equivalents, and every open escalation.",
+        "If jira_write_back is on, the lead OFFERS to comment or transition the ticket — and does it only on your explicit confirmation, for this ticket, this cycle.",
+        "Next feature? Yes → the team and worktrees are reused; the next spec commit on base syncs every role branch through the next merges. No → teardown (worktrees kept by default; pushing is yours alone)."
+      ],
+      artifact: "merge commit on base: [KEY-123: ]tran-forge: <feature> (spec …, code …, refactor …, mutate …)"
+    }
+  ];
+
+  const batonLegs = [
+    { sha: "SHA_spec", title: "Specifier → Coder", sub: "spec commit on base", body: "The Specifier commits the approved <code>.feature</code> files on the <strong>base branch</strong> and reports <code>SHA_spec</code> (10 chars, <code>git rev-parse --short=10 HEAD</code>, message ending <code>By Specifier.</code>). The lead relays it in the Coder's spawn brief; the Coder's second action is <code>git merge SHA_spec</code> into <code>tran-forge-coder</code>. Because the spec lands on base, base state flows transitively down the whole chain — there is no separate sync step." },
+    { sha: "SHA_code", title: "Coder → Reviewers", sub: "green, tidied, at the coverage bar", body: "The Coder hands off only when every scenario and the full unit suite pass, each unit it greened has been tidied, coverage is at the bar, and every gap-closing test has been proven to fail against a deliberate break. It is the pipeline's only writer of production code — so this single SHA is the entire surface the three reviews grade." },
+    { sha: "SHA_code", title: "Reviewers ⟲ Coder", sub: "parallel read-only leg — findings loop back", body: "All three Codex reviewers are spawned together and fast-forward <strong>their own</strong> <code>tran-forge-review-*</code> branch to <code>SHA_code</code>, and also receive <code>SHA_spec</code>, which gives them the cycle diff to audit. They are the only legs of the relay that <strong>create no commit</strong>: they hand back reports, and the SHA they report is the one they <em>reviewed</em>. They move the branch with <code style=\"background:#262C35\">git merge --ff-only</code>, which is a guarantee rather than a convenience: a role that couldn't fast-forward would have to create a merge commit, and it is forbidden to. A failure there means something committed on that branch — itself the finding. The lead waits for all three, consolidates and de-duplicates their reports into one ranked list, and hands it to the <strong>Coder</strong> in <code>review-fix</code> mode — which works it <em>one finding at a time</em>, because batching the edits would defeat the undo-on-red protocol. The reviewers whose findings were acted on then re-run, in parallel again." },
+    { sha: "SHA_reviewed", title: "Reviewers → Mutator", sub: "audited + covered", body: "Whatever the reviews last signed off on is what the Mutator merges — <code>SHA_code</code> when nothing needed fixing, or the last <code>review-fix</code> commit when something did. Every commit in a review-fix is a green state, because the Coder runs the suite after every step and undoes red steps rather than fixing forward. It receives <code>SHA_spec</code> too, for the differential diff of production classes touched this cycle." },
+    { sha: "SHA_final", title: "Mutator → Manual tester", sub: "verified, tests-only diff", body: "Before accepting, the lead checks the Mutator's diff paths: <strong>test code only</strong> — any production-path edit rejects the handoff, and the sensitivity sweep's experiments must have left the production diff empty. The manual tester then fast-forwards <code>tran-forge-verify</code> to <code>SHA_final</code>; like the reviewers, it commits nothing and reports the SHA it exercised." },
+    { sha: "merge", title: "Lead → base", sub: "--no-ff, suite re-run", body: "After you sign off the manual-test report, the lead merges <code>SHA_final</code> into base with <code>git merge --no-ff</code>, the message naming all four SHAs, then runs the full suite on base one final time. Any artifact you chose to drop is removed in a <em>separate follow-up commit</em> — the merge is never rewritten. The role branches are kept as history; the next cycle's spec commit on base syncs them transitively. <strong>Nothing is ever pushed by any agent — or by the lead.</strong>" }
+  ];
+
+  const rail = document.getElementById("rail");
+  const detail = document.getElementById("detail");
+
+  phases.forEach((p, i) => {
+    const b = document.createElement("button");
+    b.className = "node" + (p.kind === "human" ? " human" : "");
+    b.id = "node-" + p.id;
+    b.setAttribute("role", "tab");
+    b.innerHTML =
+      '<div class="n-top"><span class="n-phase">' + p.phase + '</span>' +
+      '<span class="actor ' + p.kind + '">' + p.actor + '</span></div>' +
+      '<div class="n-title">' + p.title + '</div>' +
+      '<div class="n-sub">' + p.sub + '</div>' +
+      (p.gate ? '<span class="gate-tag">◈ ' + p.gate + '</span>' : '');
+    b.addEventListener("click", () => selectPhase(i));
+    rail.appendChild(b);
+  });
+
+  function selectPhase(i) {
+    const p = phases[i];
+    document.querySelectorAll(".node").forEach((n, j) => {
+      n.classList.toggle("selected", j === i);
+      n.setAttribute("aria-selected", j === i ? "true" : "false");
+    });
+    detail.innerHTML =
+      '<h3>' + p.phase + " — " + p.title + '</h3>' +
+      '<div class="d-actor ' + p.kind + '">' + (p.kind === "human" ? "◈ human in the loop · " : "● machine · ") + p.actor + '</div>' +
+      '<ul>' + p.body.map(t => "<li>" + t + "</li>").join("") + '</ul>' +
+      '<div class="d-label">Artifact / handoff</div>' +
+      '<div class="d-artifact">' + p.artifact + '</div>';
+  }
+  selectPhase(0);
+
+  const baton = document.getElementById("baton");
+  const batonDetail = document.getElementById("batonDetail");
+  batonLegs.forEach((s, i) => {
+    const b = document.createElement("button");
+    b.className = "baton-step";
+    b.setAttribute("role", "tab");
+    b.innerHTML = '<div class="bs-sha">' + s.sha + '</div>' +
+      '<div class="bs-title">' + s.title + '</div><div class="bs-sub">' + s.sub + '</div>';
+    b.addEventListener("click", () => selectLeg(i));
+    baton.appendChild(b);
+    if (i < batonLegs.length - 1) {
+      const a = document.createElement("div");
+      a.className = "baton-arrow";
+      a.setAttribute("aria-hidden", "true");
+      a.textContent = "→";
+      baton.appendChild(a);
+    }
+  });
+  function selectLeg(i) {
+    document.querySelectorAll(".baton-step").forEach((n, j) => {
+      n.classList.toggle("selected", j === i);
+      n.setAttribute("aria-selected", j === i ? "true" : "false");
+    });
+    batonDetail.innerHTML = "<strong>" + batonLegs[i].title + ".</strong> " + batonLegs[i].body;
+  }
+  selectLeg(0);
+
+  const annBtns = document.querySelectorAll(".ann");
+  const codeLines = document.querySelectorAll("#specCode .cl");
+  function highlight(k) {
+    codeLines.forEach(l => l.classList.toggle("hi", l.dataset.k === k));
+    annBtns.forEach(a => a.classList.toggle("active", a.dataset.k === k));
+  }
+  annBtns.forEach(a => {
+    a.addEventListener("mouseenter", () => highlight(a.dataset.k));
+    a.addEventListener("focus", () => highlight(a.dataset.k));
+    a.addEventListener("click", () => highlight(a.dataset.k));
+  });
+  document.getElementById("annList").addEventListener("mouseleave", () => {
+    const active = document.querySelector(".ann.active");
+    if (!active) codeLines.forEach(l => l.classList.remove("hi"));
+  });
+</script>
+</body>
+</html>
