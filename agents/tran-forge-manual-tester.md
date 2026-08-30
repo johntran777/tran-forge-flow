@@ -33,9 +33,8 @@ Then read the approved `.feature` file(s) named in your brief — the specificat
 - `.worktrees/verify` (absolute path in your brief), branch `tran-forge-verify` — the shared **read-only
   verification tree**.
 - First action: verify `git branch --show-current` equals **the branch named in your brief** —
-  normally `tran-forge-verify`, but a repo set up before the flow was renamed uses the legacy
-  `swarm-forge-verify` and preflight reuses it. Match the brief, not your
-  expectation. Mismatch → STOP and report; never check out or create a branch to make it agree.
+  `tran-forge-verify`. Match the brief, not your expectation. Mismatch → STOP and report;
+  never check out or create a branch to make it agree.
 - Second action: `git merge --ff-only <handoff-sha>` (the Mutator's final commit, from your brief).
   **`--ff-only` is the point**: you create no commits, so a fast-forward must be possible. If it fails, STOP and
   report — a non-fast-forward means something committed on `tran-forge-verify`, which is itself the finding.

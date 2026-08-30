@@ -7,7 +7,7 @@ user-invocable: true
 
 # Tran Forge
 
-A Claude Code port of `unclebob/swarm-forge`: a rigid role-per-branch TDD pipeline where each role works in an
+A rigid role-per-branch TDD pipeline for Claude Code, where each role works in an
 isolated git worktree and hands off **commit pointers** (not diffs) down the chain, all routed through the team
 lead — you, the main thread.
 
@@ -113,18 +113,13 @@ Do these in order. **Stop and ask the user on any failure — never auto-fix the
    path into **every** spawn brief. Never pass a relative `.claude/...` path: subagents resolve it against the
    working directory, which for most roles is a worktree, not the main checkout.
 3. **Config** — read `tran-forge.config.md` at the repo root.
-   **Legacy fallback:** if it is absent but `swarm-forge.config.md` is present, use that one and say so in one
-   line — this flow was called Swarm Forge before, and repos created under the old name are still valid. Offer
-   the rename (`git mv swarm-forge.config.md tran-forge.config.md`) but never do it unasked, and never treat a
-   legacy config as a missing config. If **both** exist, use `tran-forge.config.md` and warn that the old one
-   is now dead weight.
-   If neither exists, offer to create one from
+   If it does not exist, offer to create one from
    `.claude/skills/tran-forge/config-template.md` (Java 25 / Spring Boot 4 / Maven defaults) and let the user
    confirm or edit before continuing. Read the article file its `article:` key points at. Resolve
    `base_branch`, the `Intake` / `Artifacts` / `Review` / `Manual test` blocks, and the thresholds.
 
    **The `Token budgets` block is optional — every key has a built-in default.** A config written before the
-   block existed (or a legacy `swarm-forge.config.md`) is complete as it stands: resolve each missing key to
+   block existed is complete as it stands: resolve each missing key to
    the default below, mention in one line which ones you defaulted, and **never** stop, warn, or offer to
    rewrite the config over an absent budget key.
 
@@ -142,26 +137,18 @@ Do these in order. **Stop and ask the user on any failure — never auto-fix the
    an interrupted cycle — see "Resuming an interrupted cycle" below.
 5. **Worktrees — you create them, not the agents.** Run `git worktree prune`, then for each of
    coder / mutator / verify / **review-arch / review-security / review-perf**:
-   - `.worktrees/<role>` exists and is on `tran-forge-<role>` **or the legacy `swarm-forge-<role>`** → reuse it.
+   - `.worktrees/<role>` exists and is on `tran-forge-<role>` → reuse it.
    - Branch `tran-forge-<role>` exists but no worktree → `git worktree add .worktrees/<role> tran-forge-<role>`.
-   - Only the legacy `swarm-forge-<role>` exists → **reuse it as-is**
-     (`git worktree add .worktrees/<role> swarm-forge-<role>`) and carry that name in every spawn brief for
-     this cycle. Do NOT create a second `tran-forge-<role>` branch alongside it: the role's history lives on
-     the legacy branch, and a parallel empty branch silently discards it.
    - Neither exists → `git worktree add .worktrees/<role> -b tran-forge-<role>`.
 
    **Then check every reused worktree, not only the main checkout:** `git status --porcelain` in each must be
    clean — a crashed earlier run leaves uncommitted debris that the next role would otherwise merge into.
    Dirty → STOP and show the user what is there; never clean it yourself. A worktree that exists but sits
-   detached, or on some branch outside the two prefixes, is the same case: STOP and ask — never check out,
+   detached, or on some branch other than `tran-forge-<role>`, is the same case: STOP and ask — never check out,
    reset, or repair it silently.
 
-   **Branch naming is per-repo, not global.** A repo that predates the rename keeps its `swarm-forge-*`
-   branches until someone migrates it; a fresh repo gets `tran-forge-*`. Resolve which prefix is in play once,
-   here, and use it consistently for the whole cycle — every agent verifies its branch name against what its
-   brief says, so a mismatch stops the pipeline rather than corrupting it. Offer the migration
-   (`git branch -m swarm-forge-<role> tran-forge-<role>` per role, which works even while checked out in a
-   worktree) but only **between cycles** — never mid-flight, and never unasked.
+   Every agent verifies its branch name against what its brief says, so a mismatch stops the pipeline
+   rather than corrupting it.
 
    Six trees, of which **four are read-only** (they never commit; they move their branch with
    `git merge --ff-only <sha>` and only read — see `constitution/workflow.md` → Topology):
@@ -787,19 +774,19 @@ anything after the ledger's last entry is treated as not having happened.
 
 ## Why no Refactorer — and what replaced it
 
-The reference implementation (`unclebob/swarm-forge`) has a Refactorer stage: a role that merges the Coder's
-commit and improves the code without changing what it does. This port dropped it deliberately, and if you are
-comparing against the reference, this is the largest divergence in the flow.
+A TDD pipeline conventionally puts a **Refactorer** between the Coder and the Mutator: a role that merges the
+Coder's commit and improves the code without changing what it does. This flow deliberately has no such stage,
+and that is its most consequential structural choice.
 
-The reason is that the reference had **no review stage**. In a four-role pipeline the Refactorer was the only
-thing standing between "code that works" and "code that's decent," so it had to carry structural judgment on
-its own authority. This port then added three independent rival-model reviews, which is a strictly better
-source of the same judgment: a dependency-rule violation identified by Codex against the project's own stated
-architecture rules is evidence, where "the Refactorer felt this wanted extracting" is taste. Keeping both left
-one role restructuring code on its own initiative *after* nothing would review the result — the design that
-shipped was not the design that had been graded.
+The reason is that a Refactorer without a review stage is the only thing standing between "code that works"
+and "code that's decent," so it has to carry structural judgment on its own authority. This flow runs three
+independent rival-model reviews instead, which is a strictly better source of the same judgment: a
+dependency-rule violation identified by Codex against the project's own stated architecture rules is evidence,
+where "the Refactorer felt this wanted extracting" is taste. Keeping both would leave one role restructuring
+code on its own initiative *after* the point where anything reviews the result — the design that shipped would
+not be the design that was graded.
 
-Its three responsibilities were redistributed rather than dropped:
+The responsibilities such a role would own are distributed, not dropped:
 
 | Refactorer owned                | Now owned by                                                          |
 |---------------------------------|-----------------------------------------------------------------------|
@@ -812,37 +799,4 @@ What this buys: every production write is reviewed (save the two bounded post-re
 which carry their own targeted re-review rule), one role writes production code, and two handoffs plus a
 worktree disappear. What it costs: the Coder is now the single point of discipline for the whole pipeline —
 so its rules are the ones not to weaken, and the `review-fix` protocol is not optional politeness. If you ever
-re-introduce a Refactorer, put it **before** the reviews, never after, or the shipped design goes ungraded.
-
-
-## Names, and migrating from Swarm Forge
-
-The flow is **Tran Forge** (`/tran-forge`), derived from `unclebob/swarm-forge` and diverged far enough from it
-to warrant its own name — the Refactorer stage removed, three parallel rival-model reviews added, plus Jira
-intake, the Phase 0 grilling, a manual-test gate and artifact retention. The README's *Mapping to the
-reference* table is the ledger. Every identifier the flow owns now says `tran-forge`; the only surviving
-`swarm-forge` references are attribution to the original.
-
-Repos set up before the rename keep working untouched. Preflight accepts both the legacy
-`swarm-forge.config.md` and legacy `swarm-forge-<role>` branches, prefers the new names when both are present,
-and reuses rather than duplicates. That tolerance is **scaffolding, not API** — once every consuming repo has
-migrated, delete both fallbacks.
-
-To migrate a repo, between cycles and never mid-flight:
-
-```bash
-git mv swarm-forge.config.md tran-forge.config.md
-# then edit any config values that name files, e.g.
-#   requirements_file: swarm-forge-requirements.md   ->  tran-forge-requirements.md
-#   -Dsurefire.excludesFile=".../swarm-forge-surefire-excludes.txt"  ->  tran-forge-...
-git mv swarm-forge-requirements.md tran-forge-requirements.md
-
-for r in coder mutator verify review-arch review-security review-perf; do
-  git branch -m "swarm-forge-$r" "tran-forge-$r" 2>/dev/null || true   # safe while checked out
-done
-git worktree list                                                      # confirm each tree followed
-```
-
-Files named only by a config key (`requirements_file`, surefire excludes) are free to rename any time — the
-flow never sees their names. The config filename and the branch prefix are the two the flow resolves itself,
-which is why they get the fallback above.
+add a Refactorer, put it **before** the reviews, never after, or the shipped design goes ungraded.

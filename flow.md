@@ -7,10 +7,7 @@ Build a software development lifecycle flow called **Tran Forge**, which consist
 
 ## Task
 
-Read the description below and study the reference implementation, then mimic and understand
-the flow to build the orchestrator and the list of agents.
-
-- **Reference repo:** [unclebob/swarm-forge](https://github.com/unclebob/swarm-forge)
+Read the description below, then build the orchestrator and the list of agents.
 
 ## Description
 

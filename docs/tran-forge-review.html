@@ -140,8 +140,7 @@
   <p><strong>Overall:</strong> a well-thought-out pipeline with clearly stated invariants and most edge cases
   handled. The SHA/merge topology was traced across multi-cycle sessions, review-fix rounds, and Gate-2 fix
   loops — the fast-forward guarantees genuinely hold everywhere except where noted below.</p>
-  <p><strong>Fix first:</strong> bugs #1 and #2. Both are swarm-forge artifacts that survived the port, and
-  both produce a <em>silently wrong</em> result rather than a visible failure — exactly the failure mode the
+  <p><strong>Fix first:</strong> bugs #1 and #2. Both produce a <em>silently wrong</em> result rather than a visible failure — exactly the failure mode the
   flow works hardest to prevent.</p>
   <p><strong>Status update (2026-08-17):</strong> bugs #1–2 and gaps #3–11 have been fixed in the flow — repo
   files under <code>tran-forge-flow/</code> and the installed copies in <code>~/.claude</code> alike. The
@@ -153,7 +152,7 @@
 
 <div class="finding bug-card">
   <h3><span class="num">1.</span> All three reviewers build their diff in the <em>verify</em> worktree <span class="badge bug">Bug</span></h3>
-  <p>Stale swarm-forge copy-paste. In each reviewer's "Build the review input" and Codex invocation, the
+  <p>Stale copy-paste. In each reviewer's "Build the review input" and Codex invocation, the
   template says <code>cd &lt;verify-worktree&gt;</code> and <code>-C &lt;abs-path-to-verify-worktree&gt;</code>
   (<code>tran-forge-architecture-reviewer.md:67,91</code>, <code>tran-forge-security-reviewer.md:55,71</code>,
   <code>tran-forge-performance-reviewer.md:57,77</code>) — contradicting their own "Where you work" sections

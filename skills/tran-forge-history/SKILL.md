@@ -40,7 +40,7 @@ Works on an in-flight cycle too. Mark unreached phases `pending` rather than inv
 
 ## Phase 1 — Gather evidence, verify nothing on trust
 
-Read the repo's config (`swarm-forge.config.md` / `tran-forge.config.md`) first: it names the base
+Read the repo's config (`tran-forge.config.md`) first: it names the base
 branch, the requirements file, the features dir, the thresholds and the commands. Then collect:
 
 ```bash

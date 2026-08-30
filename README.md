@@ -1,19 +1,11 @@
 # Tran Forge Flow
 
-**Derived from [unclebob/swarm-forge](https://github.com/unclebob/swarm-forge), and substantially diverged
-from it** — which is why it carries its own name. What is inherited is the architecture: a rigid,
-role-per-branch AI-agent TDD pipeline of adversarially-separated specialists, the Specifier → Coder → Mutator
-spine, commit-pointer handoffs, and the layered constitution. What is not: the Refactorer stage is gone, three
-parallel rival-model code reviews replace it, and Jira intake, the Phase 0 grilling, a manual-test gate and an
-artifact-retention question were added — four roles became seven. See *Mapping to the reference* below for the
-full ledger.
-
-A rigid, role-per-branch AI-agent TDD pipeline. Each role works in an isolated git worktree and hands off
-**commit pointers** (not diffs) down the chain, coordinated by a team lead. There are exactly **two
-approval gates** — you approve the Gherkin specification before any code is written, and you sign off the
-manual-test report before anything merges back. Upstream of the first gate, an optional interactive
-**grilling** (Phase 0, the `grill-me` skill) forms a well-defined requirement when the input — a
-`requirements.txt` entry or a **Jira ticket** — is too vague to specify from.
+A rigid, role-per-branch AI-agent TDD pipeline of adversarially-separated specialists. Each role works in an
+isolated git worktree and hands off **commit pointers** (not diffs) down the chain, coordinated by a team
+lead. There are exactly **two approval gates** — you approve the Gherkin specification before any code is
+written, and you sign off the manual-test report before anything merges back. Upstream of the first gate, an
+optional interactive **grilling** (Phase 0, the `grill-me` skill) forms a well-defined requirement when the
+input — a `requirements.txt` entry or a **Jira ticket** — is too vague to specify from.
 
 Three ways to start a cycle: `/tran-forge PROJ-1234` (Jira), `/tran-forge <describe the feature>` (free text),
 or bare `/tran-forge` (takes the next unimplemented item from the requirements file). No requirements file
@@ -42,21 +34,6 @@ jira? ─→ requirements ─→ [GRILL] ─→ Specifier ─→ [GATE 1] ─→
 | Performance reviewer | N+1s, unbounded reads, missing pagination, blocking IO, accidental O(n²), oversized transactions — same Codex reviewer pattern. Read-only |
 | Mutator              | PIT mutation testing — kills surviving mutants by strengthening **tests only** — plus the manual **Gherkin sensitivity sweep**: break each scenario's rule, prove the scenario fails, revert |
 | Manual tester        | Drives the real thing, dispatching by surface — `browser` through Playwright MCP, `mobile` on a simulator via Maestro/Detox/Appium, `service` over HTTP, `library` through the configured REPL, stacked when a change spans surfaces — exercising every scenario by hand plus the edges the spec never pinned. Refuses to pass a surface it had no way to exercise. Read-only; its report is Gate 2 |
-
-## Mapping to the reference
-
-| unclebob/swarm-forge                          | this port                                                        |
-|-----------------------------------------------|------------------------------------------------------------------|
-| tmux sessions + AI CLI per role               | Agent Team members (`Agent` spawns with dedicated `subagent_type`) |
-| shell handoff files + `handoffd` daemon       | `TaskUpdate` completion comments + lead-relayed `SendMessage`     |
-| `merge_and_process <sender> <commit>`         | same semantics: next role `git merge <sha10>` into its branch     |
-| constitution prompt layers                    | `skills/tran-forge/constitution/*.md`                            |
-| project article (language/tools)              | `article-java-maven.md` + per-project `tran-forge.config.md`     |
-| `tranforge.conf` + forge scripts             | `SKILL.md` preflight (worktree creation, config, smoke)           |
-| `architect` role (mutation + architecture)    | split: mutation → **Mutator**; architecture review → its own **Architecture reviewer** phase |
-| `Refactorer` role                             | **dropped** — absorbed into the Coder (tidy-as-you-go, coverage, property tests) and the architecture review (structural change as a *finding*, applied by the Coder in `review-fix` mode). The reference had no review stage, so its Refactorer had to carry structural judgement on its own authority; here a rival-model review does it with evidence. See SKILL.md → "Why no Refactorer" |
-| — (not in the reference)                      | Phase 0 grilling (`skills/grill-me`) — requirements refinement borrowed from the Matt Pocock flow |
-| — (not in the reference)                      | Optional Jira intake, three Codex reviews — design/architecture, security, performance (Phases 3–5), manual-test gate (Phase 7), artifact-retention question at cycle close |
 
 ## Layout
 
@@ -152,8 +129,8 @@ See `example/README.md` for the walkthrough.
   Cucumber engine) — mutation killing rests on the unit suite, which is why the Coder keeps unit and
   acceptance tests strictly separate. The acceptance suite is instead graded by the Mutator's **Gherkin
   sensitivity sweep**: for every scenario, break the rule it states, prove that scenario fails, revert.
-  Deliberately *not* solved by pointing PIT at Cucumber — that path is slow, flaky, and was measured to be
-  a dead end upstream.
+  Deliberately *not* solved by pointing PIT at Cucumber — that path is slow, flaky, and measures out as
+  a dead end.
 - Property testing uses QuickTheories, not jqwik: jqwik ≥ 1.10.1 prints a prompt-injection banner into
   test output on every run — hostile to an agent-driven pipeline that reads build output.
 - The Codex model slug (`gpt-5.5`) is pinned in the config, not discovered. Codex's model list moves; check

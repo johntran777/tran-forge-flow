@@ -8,10 +8,8 @@ safe: isolated branches, commit-pointer handoffs, and lead-routed communication.
 - The target repo's **main checkout** holds the base branch (named in `tran-forge.config.md` → `base_branch`).
   The **Specifier works there directly** — specs land on base, and finished cycles merge back to base.
 - Six git worktrees, created by the team lead during preflight (never by you). **Your spawn brief names your
-  branch — use exactly that string.** Most repos use `tran-forge-<role>`, but a repo set up before the flow was
-  renamed still uses `swarm-forge-<role>`, and preflight reuses whichever it found. Never "correct" a branch
-  name to match the flow's name, and never create the other-prefixed branch yourself: the role's history lives
-  on the branch you were given.
+  branch — use exactly that string**, `tran-forge-<role>`. Never "correct" a branch name, and never create a
+  differently-prefixed branch yourself: the role's history lives on the branch you were given.
 
 
   | Role                 | Working directory       | Branch                   | Writes?   |

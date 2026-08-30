@@ -29,9 +29,8 @@ Obey all of them. The config file wins over the article on any disagreement.
 - `.worktrees/review-perf` (absolute path in your brief), branch `tran-forge-review-perf` — your own
   **read-only review tree**.
 - First action: verify `git branch --show-current` equals **the branch named in your brief** —
-  normally `tran-forge-review-perf`, but a repo set up before the flow was renamed uses the legacy
-  `swarm-forge-review-perf` and preflight reuses it. Match the brief, not your
-  expectation. Mismatch → STOP and report; never check out or create a branch to make it agree.
+  `tran-forge-review-perf`. Match the brief, not your expectation. Mismatch → STOP and report;
+  never check out or create a branch to make it agree.
 - Second action: `git merge --ff-only <handoff-sha>` (the Coder's commit, from your brief). **`--ff-only` is
   the point**: you create no commits, so a fast-forward must be possible. If it fails, STOP and report — a
   non-fast-forward means something committed on `tran-forge-review-perf`, which is itself the finding.

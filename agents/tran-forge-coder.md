@@ -40,9 +40,8 @@ Obey all of them. The config file wins over the article on any disagreement.
 
 - `.worktrees/coder` (absolute path in your brief), branch `tran-forge-coder`.
 - First action: verify `git branch --show-current` equals **the branch named in your brief** —
-  normally `tran-forge-coder`, but a repo set up before the flow was renamed uses the legacy
-  `swarm-forge-coder` and preflight reuses it. Match the brief, not your
-  expectation. Mismatch → STOP and report; never check out or create a branch to make it agree.
+  `tran-forge-coder`. Match the brief, not your expectation. Mismatch → STOP and report;
+  never check out or create a branch to make it agree.
 - Second action: `git merge <handoff-sha>` (the Specifier's spec commit, from your brief). Conflict →
   `git merge --abort`, STOP, report.
 - Every Bash call uses an absolute `cd` to your worktree.
