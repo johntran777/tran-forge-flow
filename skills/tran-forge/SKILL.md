@@ -444,7 +444,15 @@ another's inputs.
 ### Phase 3 — Design & architecture review
 
 `tran-forge-architecture-reviewer` reviews the design against the project article's **Architecture rules**
-section plus Clean Architecture and SOLID: dependency rule, ports and adapters, information hiding, boundaries.
+section plus Clean Architecture and SOLID: dependency rule, ports and adapters, domain model, information
+hiding, consistency with precedent, boundaries. Codex is asked to map every changed class to its layer before
+it judges. Around the Codex pass the reviewer also runs mechanical checks (a grep for forbidden imports in the
+domain core, the project's ArchUnit tests if any — an article rule no test encodes is itself a finding — a jdeps
+cycle check, configured static analysis; each reported as NOT RUN if absent, never as passed), lists the
+public-surface change, compares the new code against the nearest existing feature, reviews the tests as design
+(domain rules tested through a framework context, mocks of the implementation's shape), checks the domain model
+against the Gherkin's nouns and rules, and ends by proving its own tree is still clean with
+`git status --porcelain`.
 
 This is the pipeline's **only** structural check. The Coder tidies what it greens but is barred from
 cross-cutting restructuring precisely so that module-scale change is reviewed rather than improvised — which
@@ -453,13 +461,28 @@ formality.
 
 ### Phase 4 — Security review (OWASP Top 10)
 
-`tran-forge-security-reviewer` runs the OWASP Top 10 review — access control, crypto, injection, insecure
-design, misconfiguration, vulnerable dependencies, auth, deserialization, logging, SSRF.
+`tran-forge-security-reviewer` runs the OWASP Top 10 review against the **current edition** (2025 at the time
+of writing, never 2021) — access control, misconfiguration, supply chain, crypto, injection, insecure design,
+auth, integrity, logging, exceptional conditions. Codex is asked to enumerate every new entry point before it
+hunts. Around the Codex pass the reviewer also runs deterministic checks (secret scan of the diff, dependency
+scan when a manifest changed — each reported as NOT RUN if the tool is absent, never as passed), audits the
+Coder's tests for disabled security and missing 401/403/cross-tenant coverage, audits the approved Gherkin for
+missing deny scenarios (always `needs-spec-change` — route those to the Specifier, not the Coder), lists every
+security-sensitive file the diff touched, and ends by proving its own tree is still clean with
+`git status --porcelain`.
 
 ### Phase 5 — Performance review
 
 `tran-forge-performance-reviewer` hunts what small fixtures hide — N+1 queries, unbounded reads, missing
-pagination, blocking IO on request threads, accidental O(n²), transaction scope.
+pagination, missing indexes on new columns and foreign keys, blocking IO on request threads, accidental O(n²),
+transaction scope, resource leaks, over-fetching. Codex is asked to map every changed operation to its path
+type (request / batch / startup) before it judges, and the config's optional `performance_budget` line is the
+project's own Blocker definition. Around the Codex pass the reviewer **measures** where the project allows it:
+one run of the acceptance suite with SQL logging on yields a statement count per scenario, so an N+1 arrives
+as a number that grows with the fixture, not an opinion (NOT RUN is reported when the project's logging setup
+prevents it — never "no regression"). It also lists every migration in the diff, checks whether any test could
+ever see the loop's cost, recommends a statement-count assertion as part of each data-access fix, and ends by
+proving its own tree is still clean with `git status --porcelain`.
 
 ### Wait for all three, then consolidate
 

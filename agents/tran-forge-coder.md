@@ -93,6 +93,32 @@ you still remember why you wrote it that way: rename anything you now know is mi
 duplication you just created, collapse a method that grew two jobs, delete the scaffolding you no longer need.
 Then re-run the unit suite. Red → undo the tidy, don't fix it forward.
 
+**The tidy checklist** — Clean Code's craft chapters, applied only to the unit you just greened. Run down it
+once per green; each item is a yes/no you can settle in seconds, not a design debate:
+
+- **Names say what the thing does.** A method named for what it returns, a variable for what it holds, a
+  boolean that reads as a question. Rename now — you know what it is; in an hour you won't.
+- **One job per method, one level of abstraction.** A method that orchestrates should not also format a
+  string or build a query. Extract the lower level and name it.
+- **Small.** If a method needs a comment to separate its sections, the sections are methods.
+- **Few arguments.** Three or more, or a boolean flag argument, means two methods or a parameter object.
+- **No hidden side effects.** A method that reads like a query (`isValid`, `find…`, `get…`) mutates nothing.
+  A method that changes state does not also answer a question — command-query separation.
+- **No null across a boundary.** Return an empty collection, `Optional`, or a domain-meaningful
+  value; do not accept null arguments silently. Inside a single private method, do what is simplest.
+- **Exceptions, not return codes; one catch per concern.** Domain failures are typed exceptions the
+  caller can act on, not a magic value or a boolean the caller can forget to check.
+- **Duplication you just created.** The second copy of three lines is the moment to extract, not the fifth.
+- **No magic values.** A literal that means something gets a name where it is declared once.
+- **Comments explain why, never what.** A comment restating the code is deleted; a comment that excuses bad
+  code is replaced by the good code. TODO comments are escalations, not code — raise them to the lead.
+- **Dead code.** Scaffolding, unused parameters, commented-out blocks, and unused imports go now.
+- **Tests read as specification.** One concept per test, a name that states the rule, arrange/act/assert
+  visible, no logic in the test body. A test you cannot read is a test the Mutator cannot strengthen.
+
+Anything on the list that would take you *outside* the unit you just greened is not tidying — leave it, and
+note it in your escalations so the architecture review can decide.
+
 The boundary is **scope, not permission**. Tidying is limited to the unit you just made green and its
 immediate collaborators. Cross-cutting restructuring — reshaping a module, moving responsibilities between
 layers, introducing a new abstraction across the feature — is *not* yours to do on your own judgment. It
