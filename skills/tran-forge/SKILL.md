@@ -383,7 +383,8 @@ to stay clean, and a scratch directory inside one dirties exactly the state the 
    `By Specifier.`) and reports **`SHA_spec`**.
 5. **Start the cycle ledger now.** `mkdir -p <ledger_dir>` and open `<ledger_dir>/<key-lowercase-or-slug>.md`
    with the feature, Jira key and `SHA_spec`. From here on, append a short entry the moment each phase
-   completes — handoff SHA, verdict line, and any call you made. The file stays **uncommitted** until Phase 8
+   completes — handoff SHA, verdict line, the tooling the role ran (for the Mutator and the manual tester,
+   the detail Phase 8 step 4 lists), and any call you made. The file stays **uncommitted** until Phase 8
    finalizes and commits it; until then it is what makes a dead session resumable (see "Resuming an
    interrupted cycle"). Do not create it before Gate 1 — the Specifier's clean-tree check runs first.
 
@@ -650,6 +651,13 @@ In the main checkout on the base branch, as the lead:
    table**:
    - feature, Jira key, per-role handoff SHAs (spec / code / reviewed / mutate), review round-trip count
    - per-phase verdict line (or SKIPPED + reason), test counts, coverage, mutation score
+   - **Mutator tooling**: the PIT invocation (differential targets, then full), each survivor's disposition
+     (test strengthened / equivalent documented / escalated), and the sensitivity sweep table verbatim — per
+     scenario, the break applied and SENSITIVE / INSENSITIVE
+   - **Manual-test tooling**: mode(s) resolved, the driver behind each (Playwright MCP / Maestro / Detox /
+     Appium / HTTP / `library_repl`), the target (`ui_base_url`, device, or REPL), pass / fail / FLAKY /
+     BLOCKED counts, the UI coverage line, and the cleanup confirmation. Nothing under `target/` records any
+     of this — the ledger is its only durable home, and `/tran-forge-history` reads it from here
    - the consolidated findings table: finding, beat, severity, behavior flag, disposition
    - duplicates merged across the three reviews, and every contradiction you resolved — which way you called
      it, and why

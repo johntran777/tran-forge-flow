@@ -66,6 +66,21 @@ Then, per artifact class:
 - **Mutation** — parse `<module>/target/pit-reports/mutations.xml`. **PIT writes
   `status='KILLED'` with single quotes**, so match `status='[A-Z_]+'` and `status="[A-Z_]+"` both, or
   you will silently compute 0%. Report total / killed / survived and the per-class breakdown.
+  Then recover **how the Mutator worked**, not only the score: the PIT invocation (differential pass
+  over the cycle's classes, then the full run — `mutation_report` and the target classes from the
+  config and the Mutator's report), the disposition of every survivor (test strengthened / equivalent
+  mutant documented / escalated to the Coder), and the **Gherkin sensitivity sweep** — per scenario,
+  the surgical break applied and the SENSITIVE / INSENSITIVE verdict. The sweep is the only mutation
+  test the specification gets, so a record that shows the score and omits the sweep undersells the
+  stage.
+- **Manual test** — the mode(s) resolved for the cycle (`browser` / `mobile` / `service` / `library` /
+  `skip`, stacked when the diff spanned surfaces), the driver behind each (Playwright MCP, Maestro or
+  Detox or Appium, HTTP client, `library_repl` or the repo's CLI), the base URL or device target, the
+  plan's pass / fail / FLAKY / BLOCKED counts, the **UI coverage line**, the screenshot evidence
+  referenced per UI scenario, and whether the tester confirmed the app process, browser and seeded
+  data were cleaned up. Source: the ledger's Phase 7 entry first, else the tester's report as relayed.
+  Nothing in `target/` records this, so when neither exists the document must say the mode and driver
+  are unrecovered — not default to "manual test passed".
 - **Tests** — prefer the figure printed by the run itself. **`surefire-reports/*.xml` accumulates
   across runs**: classes deleted or added between runs leave stale XML, so an aggregate over that
   directory can disagree with the run's own output. When two sources disagree and you cannot
@@ -171,8 +186,11 @@ carrying the same claim. No `<script>` or `<style>` inside the SVG — page-leve
 ### Interactivity that earns its place
 
 - **Clickable stages** → a detail panel with role, worktree and branch, handoff SHA in and out, a
-  verdict pill, detailed prose, and that stage's incidents. This is the core; everything else is
-  secondary.
+  verdict pill, a **tooling line**, detailed prose, and that stage's incidents. This is the core;
+  everything else is secondary. The tooling line names what the stage ran and how: for a review, the
+  Codex model, effort and sandbox flag; for the Mutator, the PIT invocation and the sweep's
+  scenario count; for the manual tester, each mode with its driver and target. A stage whose tooling
+  is unrecovered says so on that line.
 - **Arrow-key stepping** through stages in pipeline order, with focus moved so keyboard users get the
   same affordance.
 - **Incident overlay toggle** — markers on the stages that actually went wrong. Off by default; the
@@ -203,9 +221,13 @@ Every node needs `tabindex="0"`, `role="button"`, an `aria-label`, and Enter/Spa
    misleading.
 7. **Where it went wrong** — every incident, and separately **the lead's own errors**, each with what
    it cost. Do not soften these.
-8. **Verification stack** — automated results, plus the blind spots the tooling structurally cannot
-   see and how they were covered instead (DB-integration tests for new queries, controller and
-   acceptance tests for new endpoints, and any cross-module limits of the mutation tool).
+8. **Verification stack** — one row per verification stage (unit suite, acceptance suite, each Codex
+   review, PIT, Gherkin sensitivity sweep, each manual-test mode) with the tool, the invocation or
+   driver, the target it ran against, and the result it produced — so a reader can see not just
+   *that* the code was checked but *with what and how*. Then the blind spots the tooling structurally
+   cannot see and how they were covered instead (DB-integration tests for new queries, controller and
+   acceptance tests for new endpoints, any cross-module limits of the mutation tool, and — for the
+   manual test — every surface the diff touched that no mode could exercise, with the BLOCKED reason).
 9. **Still open** — anything blocking, delivery state (pushed? PR? CI? ticket status?), accepted risks
    with a "do not silently fix" warning, unfiled follow-ups, and anything never manually exercised.
 
@@ -222,6 +244,9 @@ Every node needs `tabindex="0"`, `role="button"`, an `aria-label`, and Enter/Spa
   orchestrator's mistakes is worth less than no record.
 - **Attribute Codex explicitly** on every review stage: which model, which effort, `--sandbox
   read-only`, and that a different model family grading the work is the point.
+- **Attribute the Mutator and the manual tester the same way.** PIT invocation, survivor
+  dispositions and the sensitivity sweep for the Mutator; mode, driver, target, counts and UI coverage
+  line for the manual tester. A verdict pill with no tooling behind it is an assertion, not a record.
 - **Local file, complete document, UTF-8 declared.** See above.
 - **Write nothing into the repo's tracked state.** The document is a new untracked file. Say where it
   is, and offer: leave untracked, add one line to `.git/info/exclude` (never the user's `.gitignore`),

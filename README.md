@@ -52,9 +52,12 @@ reconstructs the run from the evidence it left — the base branch's commit ledg
 Gherkin artifacts, the PIT and surefire reports, the requirements file's decision entries — and recovers the
 **verbatim Codex review prompts** from `~/.codex/sessions/*/rollout-*.jsonl`, matching each session to its
 reviewer by working directory. Output is one self-contained local HTML page with an interactive pipeline
-diagram. Its two standing rules: fabricate nothing (an unrecoverable number is reported as unrecoverable, in
-the document, where the number would have been), and record the failures — including the orchestrator's own
-wrong calls — as prominently as the metrics.
+diagram. Every verification stage is attributed with its tooling — the Codex model and effort for each
+review, the PIT invocation, survivor dispositions and sensitivity sweep for the Mutator, the mode, driver,
+target and counts for each manual-test surface — read from the cycle ledger. Its two standing rules:
+fabricate nothing (an unrecoverable number is reported as unrecoverable, in the document, where the number
+would have been), and record the failures — including the orchestrator's own wrong calls — as prominently
+as the metrics.
 
 Six worktrees: `.worktrees/coder` and `.worktrees/mutator` write; `.worktrees/review-arch`,
 `.worktrees/review-security`, `.worktrees/review-perf` and `.worktrees/verify` are **read-only**. Those four
