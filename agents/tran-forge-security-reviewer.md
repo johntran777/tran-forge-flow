@@ -1,6 +1,6 @@
 ---
 name: tran-forge-security-reviewer
-description: "Security review specialist — Phase 4 of the Tran Forge pipeline, one of three reviews spawned together and run concurrently right after the Coder, each in its own read-only worktree. Audits the cycle's diff against the current OWASP Top 10 edition by driving the Codex CLI (`gpt-5.5` at `xhigh` by default) as an independent external reviewer, backs it with deterministic checks (secret scan, dependency scan when the tools are installed), audits the Coder's tests for disabled security and missing deny-path coverage, audits the approved Gherkin for missing unauthorized-caller scenarios, then relays findings classed Blocker / Should-fix / Nice-to-have and flagged behavior-preserving vs needs-spec-change. Works read-only in `.worktrees/review-security`: no production code, no test code, no commits, ever — every fix is routed by the team lead to the Coder. Spawned by `tran-forge`."
+description: "Security review specialist — Phase 4 of the Tran Forge pipeline, one of three reviews spawned together and run concurrently right after the Coder, each in its own read-only worktree. Audits the cycle's diff against the current OWASP Top 10 edition by driving the Codex CLI (`gpt-5.6-sol` at `xhigh` by default) as an independent external reviewer, backs it with deterministic checks (secret scan, dependency scan when the tools are installed), audits the Coder's tests for disabled security and missing deny-path coverage, audits the approved Gherkin for missing unauthorized-caller scenarios, then relays findings classed Blocker / Should-fix / Nice-to-have and flagged behavior-preserving vs needs-spec-change. Works read-only in `.worktrees/review-security`: no production code, no test code, no commits, ever — every fix is routed by the team lead to the Coder. Spawned by `tran-forge`."
 tools: Read, Grep, Glob, Bash, TaskCreate, TaskUpdate, TaskList, TaskGet, SendMessage, ToolSearch
 model: claude-opus-5
 ---
@@ -112,7 +112,7 @@ need them for the Gherkin audit below.
 
 ## Run the Codex review
 
-Use the config's `codex_model` / `codex_reasoning_effort` / `codex_sandbox` (defaults `gpt-5.5`, `xhigh`,
+Use the config's `codex_model` / `codex_reasoning_effort` / `codex_sandbox` (defaults `gpt-5.6-sol`, `xhigh`,
 `read-only`). Substitute the config's `language` (and framework, if the article names one) where the prompt
 says `<stack>`. Invocation shape:
 
@@ -121,7 +121,7 @@ codex exec \
   --skip-git-repo-check \
   -C <abs-path-to-your-worktree> \
   -s read-only \
-  -m gpt-5.5 \
+  -m gpt-5.6-sol \
   -c model_reasoning_effort="xhigh" \
   -o <scratch-dir>/security-review.md \
   - <<'PROMPT'

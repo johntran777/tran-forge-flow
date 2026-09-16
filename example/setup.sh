@@ -104,7 +104,7 @@ The pipeline pauses twice: once to approve the Gherkin spec (before any code is 
 sign off the manual-test report (before anything merges back). It then asks whether to keep the
 requirement + .feature artifacts.
 
-Phase 4 runs two Codex reviews (security/OWASP + performance) at gpt-5.5/xhigh. Without the codex CLI
+Phase 4 runs two Codex reviews (security/OWASP + performance) at gpt-5.6-sol/xhigh. Without the codex CLI
 on PATH the flow reports that phase as SKIPPED — set codex_enabled: false in tran-forge.config.md to
 skip it deliberately instead.
 EOF

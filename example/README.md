@@ -26,7 +26,7 @@ Then invoke `/tran-forge`. What happens:
 2. **Specify** — the Specifier drafts Gherkin for Feature 1 and the pipeline stops at **Gate 1**:
    you approve (or revise) the spec.
 3. **Code → Review ×3 → Mutate** — autonomous on isolated branches, handing off commit SHAs.
-   The reviews are three Codex passes at `gpt-5.5`/`xhigh` — design & architecture, OWASP security and
+   The reviews are three Codex passes at `gpt-5.6-sol`/`xhigh` — design & architecture, OWASP security and
    performance — spawned together and run **in parallel**, one read-only worktree each; without the `codex`
    CLI each is reported SKIPPED, not passed. The lead waits for all three, de-duplicates their findings into
    one list, and hands it back to the Coder, which works it one finding at a time before the reviewers re-run.

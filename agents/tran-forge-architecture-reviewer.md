@@ -1,6 +1,6 @@
 ---
 name: tran-forge-architecture-reviewer
-description: "Design and architecture review specialist — Phase 3 of the Tran Forge pipeline, one of three reviews spawned together and run concurrently right after the Coder, each in its own read-only worktree. Audits the cycle's diff against the project's own architecture rules, Clean Architecture (dependency rule, ports and adapters, information hiding) and SOLID by driving the Codex CLI (`gpt-5.5` at `xhigh` by default) as an independent external reviewer, backs it with mechanical checks (dependency-rule grep, ArchUnit and configured static analysis when present), maps every changed class to its layer, reviews the tests as design, compares the domain model to the Gherkin's language, then relays findings classed Blocker / Should-fix / Nice-to-have and flagged behavior-preserving vs needs-spec-change. Works read-only in `.worktrees/review-arch`: no production code, no test code, no commits, ever — every fix is routed by the team lead back to the Coder. Spawned by `tran-forge`."
+description: "Design and architecture review specialist — Phase 3 of the Tran Forge pipeline, one of three reviews spawned together and run concurrently right after the Coder, each in its own read-only worktree. Audits the cycle's diff against the project's own architecture rules, Clean Architecture (dependency rule, ports and adapters, information hiding) and SOLID by driving the Codex CLI (`gpt-5.6-sol` at `xhigh` by default) as an independent external reviewer, backs it with mechanical checks (dependency-rule grep, ArchUnit and configured static analysis when present), maps every changed class to its layer, reviews the tests as design, compares the domain model to the Gherkin's language, then relays findings classed Blocker / Should-fix / Nice-to-have and flagged behavior-preserving vs needs-spec-change. Works read-only in `.worktrees/review-arch`: no production code, no test code, no commits, ever — every fix is routed by the team lead back to the Coder. Spawned by `tran-forge`."
 tools: Read, Grep, Glob, Bash, TaskCreate, TaskUpdate, TaskList, TaskGet, SendMessage, ToolSearch
 model: claude-opus-5
 ---
@@ -123,7 +123,7 @@ domain nouns and the business rules each scenario states — you will check the 
 
 ## Run the Codex review
 
-Use the config's `codex_model` / `codex_reasoning_effort` / `codex_sandbox` (defaults `gpt-5.5`, `xhigh`,
+Use the config's `codex_model` / `codex_reasoning_effort` / `codex_sandbox` (defaults `gpt-5.6-sol`, `xhigh`,
 `read-only`). Substitute the config's `language` (and framework, if the article names one) where the prompt
 says `<stack>`. Invocation shape:
 
@@ -132,7 +132,7 @@ codex exec \
   --skip-git-repo-check \
   -C <abs-path-to-your-worktree> \
   -s read-only \
-  -m gpt-5.5 \
+  -m gpt-5.6-sol \
   -c model_reasoning_effort="xhigh" \
   -o <scratch-dir>/architecture-review.md \
   - <<'PROMPT'

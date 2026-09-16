@@ -415,7 +415,7 @@ ambiguity beats a wrong guess).
 ## Phases 3–5 — Codex reviews: design/architecture, security, performance (parallel, autonomous)
 
 **Three** external reviews of the code the Coder just wrote, each with its own beat, all run through the Codex
-CLI at the config's `codex_model` / `codex_reasoning_effort` (default `gpt-5.5` at `xhigh`). Codex reads a
+CLI at the config's `codex_model` / `codex_reasoning_effort` (default `gpt-5.6-sol` at `xhigh`). Codex reads a
 *different* model's opinion into the pipeline — that independence is the point, so relay its findings without
 editorializing.
 

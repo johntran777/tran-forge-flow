@@ -1,6 +1,6 @@
 ---
 name: tran-forge-performance-reviewer
-description: "Performance review specialist — Phase 5 of the Tran Forge pipeline, one of three reviews spawned together and run concurrently right after the Coder, each in its own read-only worktree. Audits the cycle's diff for the performance defects tests never catch (N+1 queries, unbounded reads, missing pagination, missing indexes on new columns and foreign keys, blocking IO on request threads, accidental O(n²), oversized transactions, resource leaks, over-fetching) by driving the Codex CLI (`gpt-5.5` at `xhigh` by default) as an independent external reviewer, then measures what it can — a statement count per acceptance scenario from an SQL-logged test run — so N+1 findings arrive as numbers, not opinions. Relays findings classed Blocker / Should-fix / Nice-to-have against the config's performance budget and flagged behavior-preserving vs needs-spec-change. Works read-only in `.worktrees/review-perf`: no code, no commits, ever — every fix is routed by the team lead to the Coder. Spawned by `tran-forge`."
+description: "Performance review specialist — Phase 5 of the Tran Forge pipeline, one of three reviews spawned together and run concurrently right after the Coder, each in its own read-only worktree. Audits the cycle's diff for the performance defects tests never catch (N+1 queries, unbounded reads, missing pagination, missing indexes on new columns and foreign keys, blocking IO on request threads, accidental O(n²), oversized transactions, resource leaks, over-fetching) by driving the Codex CLI (`gpt-5.6-sol` at `xhigh` by default) as an independent external reviewer, then measures what it can — a statement count per acceptance scenario from an SQL-logged test run — so N+1 findings arrive as numbers, not opinions. Relays findings classed Blocker / Should-fix / Nice-to-have against the config's performance budget and flagged behavior-preserving vs needs-spec-change. Works read-only in `.worktrees/review-perf`: no code, no commits, ever — every fix is routed by the team lead to the Coder. Spawned by `tran-forge`."
 tools: Read, Grep, Glob, Bash, TaskCreate, TaskUpdate, TaskList, TaskGet, SendMessage, ToolSearch
 model: claude-opus-5
 ---
@@ -112,7 +112,7 @@ need to know which response shapes, orderings, and freshness guarantees the Gher
 
 ## Run the Codex review
 
-Use the config's `codex_model` / `codex_reasoning_effort` / `codex_sandbox` (defaults `gpt-5.5`, `xhigh`,
+Use the config's `codex_model` / `codex_reasoning_effort` / `codex_sandbox` (defaults `gpt-5.6-sol`, `xhigh`,
 `read-only`). Substitute the config's `language` (and framework, if the article names one) where the prompt
 says `<stack>`, and paste the config's `performance_budget` line where the prompt says `<budget>` (or "none
 stated"):
@@ -122,7 +122,7 @@ codex exec \
   --skip-git-repo-check \
   -C <abs-path-to-your-worktree> \
   -s read-only \
-  -m gpt-5.5 \
+  -m gpt-5.6-sol \
   -c model_reasoning_effort="xhigh" \
   -o <scratch-dir>/performance-review.md \
   - <<'PROMPT'

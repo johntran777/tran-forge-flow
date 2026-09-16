@@ -51,7 +51,7 @@
 ## Review (Codex — Phases 3–5, right after the Coder)
 
 - codex_enabled: true
-- codex_model: gpt-5.5
+- codex_model: gpt-5.6-sol
 - codex_reasoning_effort: xhigh
 - codex_sandbox: read-only
 - performance_budget:          # the kata is pure in-memory domain logic — nothing to budget yet

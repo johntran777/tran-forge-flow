@@ -100,7 +100,7 @@
      `codex_sandbox` must stay read-only — these reviewers must not be able to modify the repo. -->
 
 - codex_enabled: true
-- codex_model: gpt-5.5
+- codex_model: gpt-5.6-sol
 - codex_reasoning_effort: xhigh
 - codex_sandbox: read-only
 - performance_budget:          # optional, project-specific: what counts as a Blocker, e.g. "no N+1; every collection endpoint paginated"
