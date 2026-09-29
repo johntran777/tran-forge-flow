@@ -44,7 +44,9 @@ return today?" but "it returns 200 with an empty list today — should the new o
 ## Question discipline
 
 - **One question at a time.** Use `AskUserQuestion` when concrete options exist; free-form
-  otherwise. Never dump a questionnaire.
+  otherwise. Never dump a questionnaire. When the human asks for all the questions together, change to
+  the `grill-me-batch` skill's protocol and keep the answers that you already have. Do not improvise a
+  questionnaire under this one.
 - Climb this ladder, skipping rungs the context already answers:
   1. **Purpose** — what problem does this solve, and for whom?
   2. **Users** — who touches it; what are they trying to do?

@@ -4,8 +4,9 @@ A rigid, role-per-branch AI-agent TDD pipeline of adversarially-separated specia
 isolated git worktree and hands off **commit pointers** (not diffs) down the chain, coordinated by a team
 lead. There are exactly **two approval gates** — you approve the Gherkin specification before any code is
 written, and you sign off the manual-test report before anything merges back. Upstream of the first gate, an
-optional interactive **grilling** (Phase 0, the `grill-me` skill) forms a well-defined requirement when the
-input — a `requirements.txt` entry or a **Jira ticket** — is too vague to specify from.
+optional interactive **grilling** (Phase 0, the `grill-me` skill, or `grill-me-batch` for all questions
+together) forms a well-defined requirement when the input — a `requirements.txt` entry or a **Jira ticket**
+— is too vague to specify from.
 
 Three ways to start a cycle: `/tran-forge PROJ-1234` (Jira), `/tran-forge <describe the feature>` (free text),
 or bare `/tran-forge` (takes the next unimplemented item from the requirements file). No requirements file
@@ -26,7 +27,7 @@ jira? ─→ requirements ─→ [GRILL] ─→ Specifier ─→ [GATE 1] ─→
 | Role                 | Discipline                                                                                          |
 |----------------------|-----------------------------------------------------------------------------------------------------|
 | Jira intake (lead)   | Optional: `/tran-forge PROJ-1234` pulls the ticket through the Atlassian MCP and **distils** it into a plain-text requirement entry (never Gherkin, never verbatim). Read-only on Jira by default |
-| Grill (lead)         | Optional Phase 0: interviews you (`/grill-me` protocol) until a vague requirement becomes end-state behavior, edge cases, non-goals, success criteria — written back to `requirements.txt`. Always runs for a Jira ticket with open unknowns |
+| Grill (lead)         | Optional Phase 0: interviews you — one question at a time (`/grill-me`, the default) or all questions together in rounds (`/grill-me-batch`, selected by `grill_mode: batch` or by `batch grill` in the invocation) — until a vague requirement becomes end-state behavior, edge cases, non-goals, success criteria — written back to `requirements.txt`. Always runs for a Jira ticket with open unknowns |
 | Specifier            | Informal requirements → deterministic Gherkin `.feature` files; commits on base only after user approval |
 | Coder                | The pipeline's **only** writer of production code. Strict TDD: failing unit test first, minimal production code second, tidy the unit you just greened, until every scenario passes — then coverage to the bar and property tests, each gap-closing test proven to fail against a deliberate break. Runs `implement` for the feature and `review-fix` for every finding that comes back, under a hard behavior-preservation protocol |
 | Architecture reviewer| *(one of three reviews spawned together and run in parallel, each in its own read-only worktree)* Design & architecture audit of the cycle diff — dependency rule, ports and adapters, domain model, information hiding, precedent, SOLID — measured against the project article's own architecture rules and driven through the **Codex CLI** (`gpt-5.6-sol` @ `xhigh`), plus mechanical checks (forbidden-import grep, ArchUnit, jdeps cycles), a class-to-layer map, a public-surface list, a test-coupling review and a Gherkin-to-model audit. The pipeline's only structural check. Read-only; findings routed back to the Coder by the lead |
@@ -43,6 +44,7 @@ skills/tran-forge/SKILL.md      # the orchestrator — invoke as /tran-forge
 skills/tran-forge/constitution/ # discipline.md, workflow.md, article-java-maven.md
 skills/tran-forge/config-template.md
 skills/grill-me/SKILL.md         # Phase 0 requirements grilling — also standalone as /grill-me
+skills/grill-me-batch/SKILL.md   # the same grilling, all questions together — /grill-me-batch
 skills/tran-forge-history/       # post-cycle record — invoke as /tran-forge-history [KEY-123]
 example/                         # Bowling Game kata demo (Java 25 / Spring Boot 4)
 ```
@@ -100,7 +102,7 @@ cp -R agents skills "$YOUR_PROJECT/.claude/"
 
 # or install once for every repo
 cp agents/tran-forge-*.md ~/.claude/agents/
-cp -R skills/tran-forge skills/grill-me ~/.claude/skills/
+cp -R skills/tran-forge skills/grill-me skills/grill-me-batch ~/.claude/skills/
 ```
 
 Either works. Preflight resolves which one is in play and passes the constitution's absolute path to every

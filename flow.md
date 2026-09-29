@@ -44,5 +44,7 @@ The result of the flow creation should be stored under the folder `tran-forge-fl
 +Add a manual testing step after the Mutator step
 +Should we add cucumber for the mutator testing?
 +Disable the mutation testing step by default. Preflight asks the user to turn it on; the default is OFF.
++Add a "Grill Me Batch" skill: the grill step asks all of the questions together, not one at a time.
+ The one-at-a-time grilling stays the default; the config key grill_mode selects the batch mode.
 
 

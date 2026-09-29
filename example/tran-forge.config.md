@@ -50,6 +50,10 @@
 - jira_project_key:
 - jira_write_back: false
 
+<!-- interactive = one question at a time (grill-me); batch = all questions together (grill-me-batch). -->
+
+- grill_mode: interactive
+
 ## Artifacts
 
 - keep_requirements: true

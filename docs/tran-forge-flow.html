@@ -595,7 +595,8 @@
     ├── agents/tran-forge-*.md    <span class="dim"># specifier, coder, architecture-reviewer, security-reviewer, performance-reviewer, mutator, manual-tester</span>
     ├── skills/tran-forge/        <span class="dim"># SKILL.md + constitution/ + config template</span>
     ├── skills/tran-forge-history/ <span class="dim"># /tran-forge-history — rebuilds a cycle's record from the ledger, branches and reports</span>
-    └── skills/grill-me/           <span class="dim"># Phase 0 requirements grilling — also standalone /grill-me</span></div>
+    ├── skills/grill-me/           <span class="dim"># Phase 0 requirements grilling — also standalone /grill-me</span>
+    └── skills/grill-me-batch/     <span class="dim"># the same grilling, all questions together — /grill-me-batch</span></div>
 
   <h2>Running it</h2>
   <div class="tablewrap"><table>
@@ -604,6 +605,7 @@
       <tr><td><code>/tran-forge</code></td><td>Preflight (env, config, the mutation on/off question — default OFF, clean tree, clean worktrees, toolchain + Codex + Playwright/native smoke) → next unimplemented feature from <code>requirements.txt</code>, or it asks you for a ticket or a description when there is none → Phase 0 grilling if the entry is vague → the seven-stage cycle → manual-test sign-off → merge → keep-artifacts? → cycle report → "next feature?" (recommended: a fresh context, the ledger carries everything)</td></tr>
       <tr><td><code>/tran-forge PROJ-1234</code></td><td>Starts from a <strong>Jira ticket</strong>: pulls it through the Atlassian MCP, distils it into a plain-text requirement entry with an explicit <em>Unknowns</em> list, and runs the grilling on those unknowns. No MCP → it asks you to paste the ticket rather than guessing. Jira is read-only unless you say otherwise, at cycle close</td></tr>
       <tr><td><code>/tran-forge &lt;feature&gt;</code></td><td>Same cycle, targeting the named feature</td></tr>
+      <tr><td><code>/grill-me-batch &lt;feature&gt;</code></td><td>The grilling with all questions together: one numbered list with recommended answers, a reply of corrections plus <code>rest: ok</code>, at most three rounds, then the same playback. Inside a cycle: <code>grill_mode: batch</code>, or <code>/tran-forge PROJ-1234 batch grill</code></td></tr>
       <tr><td><code>/grill-me &lt;feature&gt;</code></td><td>The grilling standalone — batch-refine several <code>requirements.txt</code> entries in one product-thinking sitting, days before any cycle runs</td></tr>
       <tr><td><code>/tran-forge-history [KEY-123]</code></td><td>After (or mid-) cycle: rebuilds the run from the evidence it left — the ledger, role branch heads, Gherkin, surefire and PIT reports, and the verbatim Codex prompts recovered from <code>~/.codex/sessions</code> — into one self-contained HTML page. Attributes every verification stage with its tooling. Fabricates nothing; an unrecoverable number is reported as unrecoverable</td></tr>
       <tr><td>interrupted cycle</td><td>Preflight spots an uncommitted ledger or role branches ahead of base with no cycle-close merge, and asks: resume or abandon. Resume re-enters at the next phase with fresh spawns carrying the recorded SHAs; gate decisions are never assumed across the break</td></tr>
@@ -636,10 +638,11 @@
     {
       id: "grill", phase: "Phase 0", title: "Refine the requirement", actor: "Lead ⇄ You", kind: "human",
       sub: "The grilling — skipped when the requirement is already well-formed",
-      gate: "INTERACTIVE — runs only when the entry is vague",
+      gate: "INTERACTIVE — runs only when the entry is vague · one at a time, or all questions together",
       body: [
         "The lead judges the chosen requirements.txt entry against a bar: purpose, observable end-state behavior, edge cases, non-goals, success criteria — concrete enough that the Specifier could write deterministic Gherkin without inventing an interpretation. Kata-style entries usually pass and skip straight to Stage 1; a Jira-derived entry with open unknowns never does.",
-        "A vague, one-line, or contradictory entry triggers the grill-me protocol in the main thread: one design-changing question at a time, until the played-back design concept is explicitly confirmed.",
+        "A vague, one-line, or contradictory entry triggers the grilling in the main thread, until the played-back design concept is explicitly confirmed. The default mode is grill-me: one design-changing question at a time, each answer shaping the next.",
+        "The batch mode is grill-me-batch, selected by grill_mode: batch in the config or by 'batch grill' in the invocation. The lead does every lookup first, then asks all of its questions together in one numbered list, each with a recommended answer. You reply with the numbers to change, then 'rest: ok'. Nothing is assumed without that signal. At most three rounds: the later rounds hold only the follow-ups and the contradictions that your answers caused.",
         "The confirmed concept is written back as the feature's requirements.txt entry — plain text, no Gherkin (formalizing stays the Specifier's job) — approved by you, and committed on base so the tree is clean for Stage 1.",
         "Why it exists: the pipeline's verification stack proves the code matches the spec; this phase is the only thing proving the spec matches your intent."
       ],

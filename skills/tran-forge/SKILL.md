@@ -1,6 +1,6 @@
 ---
 name: tran-forge
-description: "User-invoked TDD pipeline skill (`/tran-forge`). Use to drive one feature through the Tran Forge cycle — optional Jira intake → Grilling (Phase 0: refine a vague requirement via /grill-me, interactive, skipped when already well-formed) → Specifier (Gherkin, user-approved) → Coder (strict TDD, tidy-as-you-go, coverage to the bar) → three Codex reviews (design/architecture, then security/OWASP, then performance) whose findings loop straight back to the Coder → Mutator (PIT mutation testing + Gherkin sensitivity sweep — opt-in, OFF by default, preflight asks the user to turn it on) → Manual test (user sign-off) — with each role committing on an isolated git-worktree branch and handing off commit SHAs through the team lead, then merging back to the base branch, asking whether to keep the requirement/Gherkin artifacts, and offering the next feature. Requires a tran-forge.config.md in the target repo (Java 25 / Spring Boot 4 / Maven default; overridable)."
+description: "User-invoked TDD pipeline skill (`/tran-forge`). Use to drive one feature through the Tran Forge cycle — optional Jira intake → Grilling (Phase 0: refine a vague requirement via /grill-me — one question at a time — or /grill-me-batch — all questions together — per the config's grill_mode; interactive, skipped when already well-formed) → Specifier (Gherkin, user-approved) → Coder (strict TDD, tidy-as-you-go, coverage to the bar) → three Codex reviews (design/architecture, then security/OWASP, then performance) whose findings loop straight back to the Coder → Mutator (PIT mutation testing + Gherkin sensitivity sweep — opt-in, OFF by default, preflight asks the user to turn it on) → Manual test (user sign-off) — with each role committing on an isolated git-worktree branch and handing off commit SHAs through the team lead, then merging back to the base branch, asking whether to keep the requirement/Gherkin artifacts, and offering the next feature. Requires a tran-forge.config.md in the target repo (Java 25 / Spring Boot 4 / Maven default; overridable)."
 allowed-tools: Bash(git:*), Bash(mvn:*), Bash(codex:*), Bash(mkdir:*), Bash(cp:*), Bash(cat:*), Bash(ls:*), Bash(find:*), Bash(grep:*)
 user-invocable: true
 ---
@@ -14,7 +14,7 @@ lead — you, the main thread.
 There are exactly **two approval gates**: the user approves the Gherkin specification before any code is
 written, and signs off the manual-test report before anything merges back. Upstream of the first gate, when the
 chosen requirement is too vague to specify from (a raw Jira ticket almost always is), an interactive
-**grilling** (Phase 0, via the `grill-me` skill) forms a well-defined requirement first — the pipeline's
+**grilling** (Phase 0, via the `grill-me` skill, or `grill-me-batch` when the batch mode is selected) forms a well-defined requirement first — the pipeline's
 verification stack proves the code matches the spec, so the spec must match the user's intent. Between the two
 gates, Coder → Review ×3 → Mutator run autonomously. The Mutator phase is **opt-in and OFF by default**:
 preflight asks the user whether to turn it on for this cycle (Preflight 3b).
@@ -60,6 +60,8 @@ path.
   config's `requirements_file`. If several candidates exist and no argument was given, ask the user which
   feature this cycle covers. If there is **no** requirements file, it is empty, or nothing in it is
   unimplemented, Preflight 9 asks for a Jira ticket or a plain-text requirement — the flow never invents one.
+- **Grill mode**: the words `batch grill` or `interactive grill` in the invocation select the Phase 0 mode
+  for this cycle. They override the config's `grill_mode`.
 
 One invocation drives **one feature** through the whole cycle, then offers the next.
 
@@ -129,6 +131,10 @@ Do these in order. **Stop and ask the user on any failure — never auto-fix the
    | `context_budget_tokens` | `100000`       | The per-context ceiling this flow is designed around (below) |
    | `report_max_lines`      | `60`           | Prose cap on a role's completion report; tables exempt       |
    | `ledger_dir`            | `.tran-forge`  | Where the cycle ledger lives (started after Gate 1)         |
+
+   **`grill_mode` (in the `Intake` block) is optional in the same way.** Absent → `interactive`. The values
+   are `interactive` (the `grill-me` skill: one question at a time) and `batch` (the `grill-me-batch`
+   skill: all questions together, in rounds). Any other value → STOP and ask.
 
    Resolve `ledger_dir` to an absolute path now and `mkdir -p` it when the ledger starts (Phase 1 step 5,
    right after Gate 1), not here — nothing under it may exist before the Specifier's clean-tree check has run.
@@ -309,9 +315,24 @@ user's intent. That is this phase's job. Run it in the main thread, before the t
 2. **Well-formed** (kata-style entries usually are) → say so in one line and proceed to Phase 1. If the user
    explicitly asked to be grilled, run the grilling anyway; if they explicitly said to skip it, skip it.
    A Jira-derived entry with a non-empty `Unknowns` list is **never** treated as well-formed.
-3. **Vague, one-line, or contradictory** → Read `.claude/skills/grill-me/SKILL.md` and execute its protocol
-   now, topic = this feature. Interview until the played-back design concept is explicitly confirmed. Seed the
-   question list with the entry's `Unknowns`.
+3. **Vague, one-line, or contradictory** → resolve the grill mode: the invocation's `batch grill` /
+   `interactive grill` first, else the config's `grill_mode`, else `interactive`. Then Read the skill for
+   that mode and execute its protocol now, topic = this feature:
+
+   | Mode          | Skill file                  | How it asks                                              |
+   |---------------|-----------------------------|----------------------------------------------------------|
+   | `interactive` | `grill-me/SKILL.md`         | One question at a time; each answer shapes the next      |
+   | `batch`       | `grill-me-batch/SKILL.md`   | All questions in one numbered list; at most three rounds |
+
+   Both files are in the `skills/` directory of the install that Preflight 2b resolved — the directory
+   that holds this skill's own folder. Use that absolute path, not a relative `.claude/...` one. If the
+   file for the selected mode is not there, STOP and tell the user; do not fall back to the other mode
+   silently.
+
+   Interview until the played-back design concept is explicitly confirmed. Seed the question list with
+   the entry's `Unknowns`. The user can change the mode in mid-grilling ("give me all the questions
+   together", "one at a time, please"): switch to the other skill's protocol and keep every answer
+   that you already have.
 4. Rewrite the feature's entry in `requirements_file`: plain-text end-state behavior, edge cases, non-goals,
    success criteria. Keep the `Source: Jira KEY-123` line when there is one. **No Gherkin syntax** —
    formalizing is the Specifier's job; don't pre-chew its work.

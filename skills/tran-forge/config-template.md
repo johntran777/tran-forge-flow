@@ -97,6 +97,17 @@
 - jira_project_key:            # e.g. PROJ — lets a bare `/tran-forge 1234` resolve; blank = full keys only
 - jira_write_back: false       # true only lets the lead OFFER to comment/transition at cycle close; still needs per-cycle confirmation
 
+<!-- grill_mode — how the Phase 0 grilling asks its questions. Optional: a config without the key
+     resolves to interactive.
+       interactive — one question at a time (the grill-me skill). Each answer shapes the next question,
+                     so it finds the most misalignment. The default.
+       batch       — all questions together in one numbered list, each with a recommended answer (the
+                     grill-me-batch skill). You reply with the numbers to change, then `rest: ok`.
+                     At most three rounds. Faster, but less adaptive.
+     The invocation overrides the key for one cycle: `/tran-forge PROJ-1234 batch grill`. -->
+
+- grill_mode: interactive
+
 ## Artifacts
 
 <!-- Defaults for the cycle-close retention question. The lead always asks; these are the pre-selected answers.
