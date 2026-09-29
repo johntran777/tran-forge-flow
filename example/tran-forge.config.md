@@ -56,6 +56,14 @@
 - codex_sandbox: read-only
 - performance_budget:          # the kata is pure in-memory domain logic — nothing to budget yet
 
+<!-- The kata produces a handful of findings a cycle, which the lead can consolidate by hand.
+     Flip this on when pointing the flow at a real repo, where three reviewers over a real diff
+     return enough findings that deduping them in prose is where the lead starts making mistakes. -->
+
+- typesafe_enabled: false
+- typesafe_model: jev-latest
+- typesafe_min_confidence: 0.55
+
 ## Manual test (Phase 7 — the second human gate)
 
 <!-- `auto` is correct here: requirements.txt asks for the score to be exposed over an HTTP endpoint, so from

@@ -105,6 +105,19 @@
 - codex_sandbox: read-only
 - performance_budget:          # optional, project-specific: what counts as a Blocker, e.g. "no N+1; every collection endpoint paginated"
 
+<!-- Mechanical triage of what the three reviews return, through TypeSafe's System One API
+     (skills/tran-forge/scripts/triage-findings.py). It grades, dedupes and flags; the POLICY that
+     turns those signals into a dispatch list lives in that script, in code you can read and diff.
+     Off by default: it needs TYPESAFE_API_KEY in the environment, and the lead's own consolidation
+     is the fallback whenever it is off, unset or fails. It never decides anything alone -- a
+     Blocker needing a spec change still stops for you, and low confidence still comes to the lead.
+     typesafe_min_confidence: severity confidence under this goes to the lead, never to the Coder.
+     Start at 0.55 and move it after you have watched a few cycles on this repo's own findings. -->
+
+- typesafe_enabled: false
+- typesafe_model: jev-latest
+- typesafe_min_confidence: 0.55
+
 ## Manual test (Phase 7 — the second human gate)
 
 <!-- Phase 7 dispatches by SURFACE: every surface the cycle's diff touched gets the one mode that can

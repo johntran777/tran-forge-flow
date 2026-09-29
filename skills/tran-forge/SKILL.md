@@ -502,6 +502,42 @@ all three to complete (or fail), then build one consolidated finding list:
    performance versus "don't cache authorization decisions" from security. That conflict is yours to settle
    or escalate; the Coder must never receive two findings that cancel each other.
 
+### Mechanical triage (when `typesafe_enabled: true`)
+
+Those three steps are judgment at its least reliable: you are holding three reports in a context that already
+holds the whole cycle, comparing findings pairwise in your head, and the mistakes it produces — a duplicate
+dispatched three times, a contradiction sent as two briefs, a spec change slipped onto the Coder's list — are
+exactly the ones that cost a round-trip each. When the config enables it, do the grading mechanically first:
+
+```bash
+python3 skills/tran-forge/scripts/triage-findings.py \
+  --findings <cycle-dir>/findings.json --out <cycle-dir>/triage.json \
+  --model <typesafe_model> --min-confidence <typesafe_min_confidence>
+```
+
+You write `findings.json` from the three reports — one entry per finding, with its reviewer, its location, the
+reviewer's own wording verbatim in `detail`, plus the approved Gherkin and the config's Blocker rule. The
+script's docstring carries the exact shape. It asks a System One model for the small judgments only (how
+serious, behavior-preserving or not, covered by the approved spec or not, grounded in a cited location or not,
+how big the fix is, and for every cross-reviewer pair whether the two describe one defect or pull in opposite
+directions), then applies the disposition table below **in code** and returns four buckets: `dispatch`,
+`stop_for_user`, `lead_review`, `report_only`, plus the contradictions it found and the merges it made.
+
+Four rules for using it, none of which the script can enforce for you:
+
+- **It grades; you dispatch.** Read `reasons` on every entry before acting on its bucket. An entry in
+  `lead_review` is the script saying it will not decide this one — that is the feature, not a gap.
+- **It never shortens the stop.** `stop_for_user` goes to you under the needs-spec-change loop below,
+  unchanged. No threshold in that file can put a Blocker needing a spec change on the Coder's list.
+- **A partial run is a failed run.** The script prints `PARTIAL` and fills `errors` when a request fails. A
+  finding with no answer was not triaged, and consolidating the rest as if it were complete hides it. Triage
+  the failures by hand and say in the cycle report that you did.
+- **Off, unset, or broken → consolidate by hand**, exactly as in the three steps above. Report the triage as
+  skipped in the cycle report; never report an unrun triage as a clean one.
+
+Record in the ledger: the model that answered (the script returns it), how many findings merged into how many
+entries, and each bucket's size. `tran-forge-history` reads those numbers back.
+
 ### Disposition, as lead
 
 Each of the three returns findings classed **Blocker / Should-fix / Nice-to-have**, each flagged
