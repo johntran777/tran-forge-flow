@@ -1,6 +1,6 @@
 ---
 name: tran-forge
-description: "User-invoked TDD pipeline skill (`/tran-forge`). Use to drive one feature through the Tran Forge cycle — optional Jira intake → Grilling (Phase 0: refine a vague requirement via /grill-me, interactive, skipped when already well-formed) → Specifier (Gherkin, user-approved) → Coder (strict TDD, tidy-as-you-go, coverage to the bar) → three Codex reviews (design/architecture, then security/OWASP, then performance) whose findings loop straight back to the Coder → Mutator (PIT mutation testing + Gherkin sensitivity sweep) → Manual test (user sign-off) — with each role committing on an isolated git-worktree branch and handing off commit SHAs through the team lead, then merging back to the base branch, asking whether to keep the requirement/Gherkin artifacts, and offering the next feature. Requires a tran-forge.config.md in the target repo (Java 25 / Spring Boot 4 / Maven default; overridable)."
+description: "User-invoked TDD pipeline skill (`/tran-forge`). Use to drive one feature through the Tran Forge cycle — optional Jira intake → Grilling (Phase 0: refine a vague requirement via /grill-me, interactive, skipped when already well-formed) → Specifier (Gherkin, user-approved) → Coder (strict TDD, tidy-as-you-go, coverage to the bar) → three Codex reviews (design/architecture, then security/OWASP, then performance) whose findings loop straight back to the Coder → Mutator (PIT mutation testing + Gherkin sensitivity sweep — opt-in, OFF by default, preflight asks the user to turn it on) → Manual test (user sign-off) — with each role committing on an isolated git-worktree branch and handing off commit SHAs through the team lead, then merging back to the base branch, asking whether to keep the requirement/Gherkin artifacts, and offering the next feature. Requires a tran-forge.config.md in the target repo (Java 25 / Spring Boot 4 / Maven default; overridable)."
 allowed-tools: Bash(git:*), Bash(mvn:*), Bash(codex:*), Bash(mkdir:*), Bash(cp:*), Bash(cat:*), Bash(ls:*), Bash(find:*), Bash(grep:*)
 user-invocable: true
 ---
@@ -16,7 +16,8 @@ written, and signs off the manual-test report before anything merges back. Upstr
 chosen requirement is too vague to specify from (a raw Jira ticket almost always is), an interactive
 **grilling** (Phase 0, via the `grill-me` skill) forms a well-defined requirement first — the pipeline's
 verification stack proves the code matches the spec, so the spec must match the user's intent. Between the two
-gates, Coder → Review ×3 → Mutator run autonomously.
+gates, Coder → Review ×3 → Mutator run autonomously. The Mutator phase is **opt-in and OFF by default**:
+preflight asks the user whether to turn it on for this cycle (Preflight 3b).
 
 ```
                                                               ┌── consolidated findings ──┐
@@ -25,8 +26,8 @@ gates, Coder → Review ×3 → Mutator run autonomously.
 jira? ─→ requirements ─→ [GRILL] ─→ Specifier ─→ [GATE 1] ─→ Coder ─┼─ security ┼──────────┘─→ Mutator ─→ Manual test ─→ [GATE 2] ─→ merge ─→ next?
  (opt)                  (interactive,   (base)    Gherkin    (TDD +  └─ perf ────┘             (PIT +        (plan +      sign-off    (lead)
                           optional)               approved   tidy +   3 Codex reviews,          sensitivity)  execute)
-                                                  before      cover)  spawned together,
-                                                  code               run in parallel
+                                                  before      cover)  spawned together,         opt-in,
+                                                  code               run in parallel            default OFF
 ```
 
 **The Coder is the pipeline's only writer of production code, and every review finding loops back to it.**
@@ -131,12 +132,35 @@ Do these in order. **Stop and ask the user on any failure — never auto-fix the
 
    Resolve `ledger_dir` to an absolute path now and `mkdir -p` it when the ledger starts (Phase 1 step 5,
    right after Gate 1), not here — nothing under it may exist before the Specifier's clean-tree check has run.
+3b. **Mutation testing — ask the user. The default is OFF.** Phase 6 (the Mutator: PIT plus the Gherkin
+   sensitivity sweep) is opt-in for each cycle. Read the config's `mutation_enabled` key for the
+   pre-selected answer. The key is optional: absent → `false`, with no stop, no warning and no offer to
+   rewrite the config. Then ask once, before any worktree exists. (A resumed cycle does not ask: it takes
+   the choice from the ledger — see "Resuming an interrupted cycle".)
+
+   ```
+   Mutation testing (Phase 6: PIT + Gherkin sensitivity sweep) is OFF for this cycle.
+   Turn it on? [y/N]
+   ```
+
+   - Only an explicit yes turns it on. Silence, "proceed", or an unclear answer → OFF.
+   - When the config sets `mutation_enabled: true`, the pre-selected answer is ON (`Keep it on? [Y/n]`).
+     Ask anyway: the choice belongs to the user, each cycle.
+   - When the invocation already states the choice ("with mutation testing", "no mutation"), take it as
+     the answer and do not ask again.
+   - Say the cost in one line when you ask. ON adds PIT runs and one acceptance run per scenario. OFF
+     means that no stage after the Coder proves that the tests catch bugs.
+
+   Keep the answer as **`mutation_on`**. It decides whether step 5 creates the mutator worktree and
+   whether Phase 6 runs. Write it into the ledger header when the ledger starts (Phase 1 step 5), so a
+   resumed cycle keeps the same choice.
 4. **Clean tree** — `git status --porcelain` on the main checkout must be empty. Dirty → STOP and ask: the
    Specifier commits on base and the cycle-close merge lands on base; a dirty base makes both unsafe. Never
    stash silently. One special case: if the only dirt is an in-progress ledger under `<ledger_dir>`, that is
    an interrupted cycle — see "Resuming an interrupted cycle" below.
 5. **Worktrees — you create them, not the agents.** Run `git worktree prune`, then for each of
-   coder / mutator / verify / **review-arch / review-security / review-perf**:
+   coder / verify / **review-arch / review-security / review-perf** — and **mutator only when
+   `mutation_on`** (step 3b):
    - `.worktrees/<role>` exists and is on `tran-forge-<role>` → reuse it.
    - Branch `tran-forge-<role>` exists but no worktree → `git worktree add .worktrees/<role> tran-forge-<role>`.
    - Neither exists → `git worktree add .worktrees/<role> -b tran-forge-<role>`.
@@ -150,13 +174,17 @@ Do these in order. **Stop and ask the user on any failure — never auto-fix the
    Every agent verifies its branch name against what its brief says, so a mismatch stops the pipeline
    rather than corrupting it.
 
-   Six trees, of which **four are read-only** (they never commit; they move their branch with
-   `git merge --ff-only <sha>` and only read — see `constitution/workflow.md` → Topology):
+   With mutation testing off, do not create, check, reuse or remove `.worktrees/mutator`. A tree that an
+   earlier cycle left there stays as it is.
+
+   Six trees when mutation testing is on, five when it is off. **Four are read-only** (they never commit;
+   they move their branch with `git merge --ff-only <sha>` and only read — see `constitution/workflow.md`
+   → Topology):
 
    | Tree                        | Branch                        | Used by                        |
    |-----------------------------|-------------------------------|--------------------------------|
    | `.worktrees/coder`          | `tran-forge-coder`           | Coder (writes)                 |
-   | `.worktrees/mutator`        | `tran-forge-mutator`         | Mutator (writes tests only)    |
+   | `.worktrees/mutator`        | `tran-forge-mutator`         | Mutator (tests only; opt-in)   |
    | `.worktrees/review-arch`    | `tran-forge-review-arch`     | Architecture reviewer (RO)     |
    | `.worktrees/review-security`| `tran-forge-review-security` | Security reviewer (RO)         |
    | `.worktrees/review-perf`    | `tran-forge-review-perf`     | Performance reviewer (RO)      |
@@ -306,7 +334,7 @@ TeamCreate({team_name: "tran-forge-<repo-slug>", description: "Tran Forge TDD cy
 - The main thread is the **team lead**: it owns the task list, relays every handoff SHA, runs the two human
   gates, performs the cycle-close merge, and never does role work itself.
 - Create the phase tasks up front via `TaskCreate`: Specify / Code / Review-architecture / Review-security /
-  Review-performance / Mutate / Manual-test / Merge-back.
+  Review-performance / Mutate / Manual-test / Merge-back. Create the Mutate task only when `mutation_on`.
 - **Spawn one agent at a time, strictly sequentially — with exactly one exception: the three reviews at
   Phases 3–5 are spawned together, in a single message, and run concurrently.** Everything else in this
   pipeline is serial because each stage consumes the previous stage's commit; the three reviews consume the
@@ -324,7 +352,7 @@ TeamCreate({team_name: "tran-forge-<repo-slug>", description: "Tran Forge TDD cy
 | 3 ┐   | Review — design/arch | `tran-forge-architecture-reviewer` | `.worktrees/review-arch` (RO)| autonomous ┐ spawned together, |
 | 4 ├─╫ | Review — security  | `tran-forge-security-reviewer`    | `.worktrees/review-security` (RO)| run concurrently; all three |
 | 5 ┘   | Review — perf      | `tran-forge-performance-reviewer` | `.worktrees/review-perf` (RO)| ┘ consolidated → Coder |
-| 6     | Mutate             | `tran-forge-mutator`               | `.worktrees/mutator`    | autonomous (lead sanity-check)              |
+| 6     | Mutate (opt-in)    | `tran-forge-mutator`               | `.worktrees/mutator`    | autonomous; **skipped unless turned on at Preflight 3b** |
 | 7     | Manual test        | `tran-forge-manual-tester`        | `.worktrees/verify` (RO)| **GATE 2 — USER signs off the report**      |
 | 8     | Merge + retention  | team lead (you)                    | main checkout (base)    | cycle report; keep-artifacts question       |
 
@@ -382,11 +410,12 @@ to stay clean, and a scratch directory inside one dirties exactly the state the 
 4. Approved → `SendMessage` "approved — commit". The specifier commits (spec files only, message ending
    `By Specifier.`) and reports **`SHA_spec`**.
 5. **Start the cycle ledger now.** `mkdir -p <ledger_dir>` and open `<ledger_dir>/<key-lowercase-or-slug>.md`
-   with the feature, Jira key and `SHA_spec`. From here on, append a short entry the moment each phase
-   completes — handoff SHA, verdict line, the tooling the role ran (for the Mutator and the manual tester,
-   the detail Phase 8 step 4 lists), and any call you made. The file stays **uncommitted** until Phase 8
-   finalizes and commits it; until then it is what makes a dead session resumable (see "Resuming an
-   interrupted cycle"). Do not create it before Gate 1 — the Specifier's clean-tree check runs first.
+   with the feature, Jira key, `SHA_spec` and the Preflight 3b mutation choice (on / off). From here on, append
+   a short entry the moment each phase completes — handoff SHA, verdict line, the tooling the role ran (for the
+   Mutator and the manual tester, the detail Phase 8 step 4 lists), and any call you made. The file stays
+   **uncommitted** until Phase 8 finalizes and commits it; until then it is what makes a dead session resumable
+   (see "Resuming an interrupted cycle"). Do not create it before Gate 1 — the Specifier's clean-tree check runs
+   first.
 
 ## Phase 2 — Code (autonomous)
 
@@ -399,7 +428,8 @@ Sanity-check the report and proceed without asking the user:
 - **Coverage at the bar** and **coverage tests red-phased** — the Coder must report each gap-closing test as
   proven to fail against a deliberate break, then reverted. A missing red phase means tests of unknown value;
   `SendMessage` it to do the experiment before you move on. This is the checkpoint that keeps weak tests from
-  reaching the Mutator as manufactured work.
+  reaching the Mutator as manufactured work. With mutation testing off (the default), it is also the only
+  proof of test strength that the cycle gets — do not relax it.
 - **Mutation blind spots covered** — PIT can't see them, so this is the only checkpoint: does each new/changed
   repository `@Query` have a DB-integration test, and each new endpoint a controller test + acceptance
   scenario? (See the Coder's "Blind-spot tests" report line.) If the feature touched a query or endpoint and
@@ -591,10 +621,36 @@ it does not end the cycle:
      re-run rule above covers behavior-preserving fixes and does not apply here.
 4. Continue to Phase 6 with whatever SHA the reviews last signed off on.
 
-Track the SHA. After the fix pass the current head moves; the Mutator merges whatever the reviews last signed
-off on. Call it **`SHA_reviewed`** in your notes (it is `SHA_code` when no fix was needed).
+Track the SHA. After the fix pass the current head moves; the Mutator (or, with mutation testing off, the manual
+tester) merges whatever the reviews last signed off on. Call it **`SHA_reviewed`** in your notes (it is
+`SHA_code` when no fix was needed).
 
-## Phase 6 — Mutate (autonomous)
+## Phase 6 — Mutate (opt-in, autonomous)
+
+**This phase runs only when the user turned it on at Preflight 3b. The default is OFF.**
+
+### When mutation testing is OFF (the default)
+
+Do not spawn `tran-forge-mutator`. This cycle has no PIT run, no survivor work and no Gherkin sensitivity
+sweep. Do this instead:
+
+1. Set **`SHA_final` = `SHA_reviewed`**. Every later phase uses `SHA_final` as before.
+2. **Run the final verification yourself.** The Mutator is not there to run it. In `.worktrees/coder`,
+   make sure that `git rev-parse --short=10 HEAD` equals `SHA_reviewed` and that `git status --porcelain`
+   is clean. Then run the config's `build`, `all_tests` and `coverage` commands, piped as the token
+   discipline says. All three must be green. Get the line coverage of the classes this cycle touched
+   with `grep` on the JaCoCo XML — never Read the file whole. It must reach `line_coverage_min`.
+3. A red result or a coverage gap goes to the **Coder in `review-fix` mode**, one finding per fresh spawn.
+   The new SHA becomes `SHA_final`, and you run step 2 again. The re-review rule of the ON path applies:
+   a fix that touches a security-sensitive edge, or that is larger than a trivial diff, gets the matching
+   reviewer(s) first.
+4. Record the phase in the ledger as **`Mutate: SKIPPED — off at Preflight 3b`**, with the results of
+   step 2.
+5. Report it as skipped everywhere. Mutation score, survivor disposition and Gherkin sensitivity are all
+   **SKIPPED — off at preflight**. Never report an unrun mutation phase as passed, and never give a
+   mutation score that no PIT run produced.
+
+### When mutation testing is ON
 
 Spawn `tran-forge-mutator` with `SHA_reviewed` (and `SHA_spec` for the differential diff). It
 returns **`SHA_final`**, the mutation score, survivor disposition, the per-scenario Gherkin-sensitivity sweep,
@@ -655,7 +711,8 @@ actually work when a person drives it?
    Carry every BLOCKED item to the user at Gate 2 as an explicit gap. Shared source is not shared evidence.
 4. **Present the manual-test report to the user verbatim** and ask for sign-off. This is Gate 2.
    - ❌ items → route to the **Coder in `review-fix` mode** (test-first: a failing manual case should become
-     an automated test before it is fixed) → Mutator re-verifies → re-run the manual tester on the new SHA.
+     an automated test before it is fixed) → Mutator re-verifies (with mutation testing off: you re-run the
+     Phase 6 OFF-path verification on the new SHA) → re-run the manual tester on the new SHA.
      This is the spine's other post-review exception — same rule as Phase 6: proceed by default, but when the
      fix touches a security-sensitive edge or outgrows a trivial diff, re-run the matching reviewer(s) on the
      new SHA first, and record the call in the ledger.
@@ -676,6 +733,8 @@ In the main checkout on the base branch, as the lead:
    ledger file under `<ledger_dir>`, which step 4 finalizes and commits.
 2. Merge:
    `git merge --no-ff <SHA_final> -m "[KEY-123: ]tran-forge: <feature> (spec <SHA_spec>, code <SHA_code>, reviewed <SHA_reviewed>, mutate <SHA_final>)"`.
+   With mutation testing off, write `mutate skipped` in place of `mutate <SHA_final>`. The message must
+   not name a Mutator commit that does not exist.
 3. Run the config's `all_tests` on base — must be green. Red → investigate before reporting.
 4. **Finalize and commit the cycle ledger** — the file you have been appending to since Gate 1 at
    `<ledger_dir>/<key-lowercase-or-slug>.md` (`ledger_dir` as resolved in Preflight 3, default `.tran-forge/`;
@@ -686,10 +745,13 @@ In the main checkout on the base branch, as the lead:
    is what makes "next feature in a fresh session" lossless. Record, tersely but **without truncating any
    table**:
    - feature, Jira key, per-role handoff SHAs (spec / code / reviewed / mutate), review round-trip count
+   - the Preflight 3b mutation choice: on / off, and where it came from (the user's answer or the
+     invocation)
    - per-phase verdict line (or SKIPPED + reason), test counts, coverage, mutation score
-   - **Mutator tooling**: the PIT invocation (differential targets, then full), each survivor's disposition
-     (test strengthened / equivalent documented / escalated), and the sensitivity sweep table verbatim — per
-     scenario, the break applied and SENSITIVE / INSENSITIVE
+   - **Mutator tooling** (when Phase 6 ran; when it did not, `SKIPPED — off at Preflight 3b` plus the results of
+     the lead's own build / suite / coverage verification): the PIT invocation (differential targets, then
+     full), each survivor's disposition (test strengthened / equivalent documented / escalated), and the
+     sensitivity sweep table verbatim — per scenario, the break applied and SENSITIVE / INSENSITIVE
    - **Manual-test tooling**: mode(s) resolved, the driver behind each (Playwright MCP / Maestro / Detox /
      Appium / HTTP / `library_repl`), the target (`ui_base_url`, device, or REPL), pass / fail / FLAKY /
      BLOCKED counts, the UI coverage line, and the cleanup confirmation. Nothing under `target/` records any
@@ -724,14 +786,16 @@ In the main checkout on the base branch, as the lead:
      record `/tran-forge-history` can verify against — state the consequence in one line when the user
      chooses either. If they confirm, do it — it's their call.
 
-   **INSENSITIVE scenarios become queued work here, or they die in the report.** For each one the sweep
+   **INSENSITIVE scenarios become queued work here, or they die in the report.** (Only when Phase 6 ran:
+   with mutation testing off there was no sweep, so there is nothing to queue.) For each one the sweep
    found, offer to append a `## Tighten scenario: "<name>"` entry (with the Mutator's why-it-is-insensitive
    line) to `requirements_file`, committed as a follow-up on base — so a later `/tran-forge` picks it up as
    an ordinary unimplemented requirement instead of the finding evaporating.
 6. Present the **cycle report** to the user:
    - Feature + Jira key + scenario list
    - Per-role SHAs (spec / code / reviewed / mutate) and how many review round-trips the Coder took
-   - Test counts, coverage, mutation score
+   - Test counts, coverage, mutation score — with mutation testing off, write
+     **Mutation testing: SKIPPED — off at preflight** in place of a score
    - Mutation blind spots covered this cycle (DB-integration tests for queries, controller + acceptance tests
      for endpoints), so the mutation score isn't read as proving what PIT can't see
    - **Design & architecture review**: Blockers fixed / open, Should-fix carried, how many of the Coder's own
@@ -741,11 +805,11 @@ In the main checkout on the base branch, as the lead:
    - **Security review**: same shape
    - **Performance review**: same shape
    - **Gherkin sensitivity**: SENSITIVE / INSENSITIVE per scenario — and, per INSENSITIVE one, whether the
-     user queued a `Tighten scenario` entry in `requirements_file`
+     user queued a `Tighten scenario` entry in `requirements_file`. SKIPPED when mutation testing is off
    - **Manual test**: mode(s), pass/fail counts, **UI coverage line** (browser-driven, n/a, or BLOCKED + why),
      any FLAKY items, what the user signed off (including anything accepted with known issues), or SKIPPED +
      reason
-   - Documented equivalent mutants
+   - Documented equivalent mutants (only when Phase 6 ran)
    - Artifact retention decision
    - Open escalations (these are the user's decisions for next cycle)
 7. If the config sets `jira_write_back: true`, *offer* to post the cycle report as a Jira comment and/or
@@ -765,8 +829,9 @@ In the main checkout on the base branch, as the lead:
 - `SendMessage` `{type: "shutdown_request"}` to any live agents.
 - If the manual tester booted the app, confirm the process is stopped and any seeded data cleaned up before
   teardown (its report states both).
-- Ask the user whether to remove the worktrees (`git worktree remove .worktrees/<role>` ×6). Default: keep
-  them for the next session. The `tran-forge-*` branches are kept as history either way.
+- Ask the user whether to remove the worktrees (`git worktree remove .worktrees/<role>`, once for each tree that
+  exists — six with mutation testing on, five with it off). Default: keep them for the next session. The
+  `tran-forge-*` branches are kept as history either way.
 - **Pushing anything is exclusively user-initiated, after this skill ends.** Never offer to push as part of
   the flow.
 
@@ -813,7 +878,7 @@ cycle-close merge, means an interrupted cycle. Tell the user what you found and 
   Re-enter at the next phase with **fresh spawns** carrying the recorded SHAs — role contexts are disposable
   by design, and nothing needs the dead session's transcript. Anything mid-flight and unrecorded (a review
   that never reported, a fix dispatched but not committed) simply re-runs: that is the cheap, safe direction
-  to err in.
+  to err in. The ledger header holds the Preflight 3b mutation choice: keep it, and do not ask again.
 - **Abandon** → never delete work silently. Show what each role branch holds beyond base and let the user
   decide what happens to it; at most, discard the uncommitted ledger on their explicit say-so.
 
@@ -834,10 +899,10 @@ anything after the ledger's last entry is treated as not having happened.
   unresolvable red, (d) the manual-test sign-off, (e) the cycle report. Don't stop because a phase produced a
   long report — read it, decide, proceed.
 - Before reporting the cycle done, re-walk Preflight → Jira intake (if run) → Grill (if run) → Specify → Code →
-  Review ×3 (design/architecture, security, performance — all three actually returned, or are recorded
-  SKIPPED) → Mutate → Manual test → Merge-back and verify each step actually completed with a green
-  verification, or is explicitly recorded as skipped. Every accepted review finding must have a `review-fix`
-  round-trip AND a re-run of the reviewer that raised it.
+  Review ×3 (design/architecture, security, performance — all three actually returned, or are recorded SKIPPED)
+  → Mutate (or recorded SKIPPED — off at preflight) → Manual test → Merge-back and verify each step actually
+  completed with a green verification, or is explicitly recorded as skipped. Every accepted review finding must
+  have a `review-fix` round-trip AND a re-run of the reviewer that raised it.
 
 ## Why no Refactorer — and what replaced it
 

@@ -19,8 +19,8 @@ proceed.
 jira? ─→ requirements ─→ [GRILL] ─→ Specifier ─→ [GATE 1] ─→ Coder ─→ ────┼─ security ┼──────────┘─→ Mutator ─→ Manual test ─→ [GATE 2] ─→ merge ─→ next?
  (opt)                  (interactive,   (base)    Gherkin    (TDD +       └─ perf ────┘              (PIT +       (plan +      sign-off    (lead)
                           optional)               approved   tidy +    3 Codex reviews, spawned      sensitivity)  execute)
-                                                  before      cover)   together, run in parallel
-                                                  code
+                                                  before      cover)   together, run in parallel      opt-in,
+                                                  code                                                default OFF
 ```
 
 | Role                 | Discipline                                                                                          |
@@ -32,7 +32,7 @@ jira? ─→ requirements ─→ [GRILL] ─→ Specifier ─→ [GATE 1] ─→
 | Architecture reviewer| *(one of three reviews spawned together and run in parallel, each in its own read-only worktree)* Design & architecture audit of the cycle diff — dependency rule, ports and adapters, domain model, information hiding, precedent, SOLID — measured against the project article's own architecture rules and driven through the **Codex CLI** (`gpt-5.6-sol` @ `xhigh`), plus mechanical checks (forbidden-import grep, ArchUnit, jdeps cycles), a class-to-layer map, a public-surface list, a test-coupling review and a Gherkin-to-model audit. The pipeline's only structural check. Read-only; findings routed back to the Coder by the lead |
 | Security reviewer    | Current-edition OWASP Top 10 audit of the cycle diff, same Codex reviewer pattern for an independent model's opinion, plus deterministic secret/dependency scans, a test audit for missing deny-path coverage, and a Gherkin audit for missing unauthorized-caller scenarios. Read-only; findings routed to the Coder (or, for spec gaps, the Specifier) by the lead |
 | Performance reviewer | N+1s, unbounded reads, missing pagination, missing indexes, blocking IO, accidental O(n²), oversized transactions, resource leaks, over-fetching — same Codex reviewer pattern, graded against the config's performance budget, plus a measured statement count per acceptance scenario from an SQL-logged test run so N+1 findings arrive as numbers. Read-only |
-| Mutator              | PIT mutation testing — kills surviving mutants by strengthening **tests only** — plus the manual **Gherkin sensitivity sweep**: break each scenario's rule, prove the scenario fails, revert |
+| Mutator              | **Opt-in, OFF by default** — preflight asks whether to turn it on for the cycle. PIT mutation testing — kills surviving mutants by strengthening **tests only** — plus the manual **Gherkin sensitivity sweep**: break each scenario's rule, prove the scenario fails, revert |
 | Manual tester        | Drives the real thing, dispatching by surface — `browser` through Playwright MCP, `mobile` on a simulator via Maestro/Detox/Appium, `service` over HTTP, `library` through the configured REPL, stacked when a change spans surfaces — exercising every scenario by hand plus the edges the spec never pinned. Refuses to pass a surface it had no way to exercise. Read-only; its report is Gate 2 |
 
 ## Layout
@@ -59,7 +59,8 @@ fabricate nothing (an unrecoverable number is reported as unrecoverable, in the 
 would have been), and record the failures — including the orchestrator's own wrong calls — as prominently
 as the metrics.
 
-Six worktrees: `.worktrees/coder` and `.worktrees/mutator` write; `.worktrees/review-arch`,
+Six worktrees when mutation testing is on, five when it is off (then there is no `.worktrees/mutator`):
+`.worktrees/coder` and `.worktrees/mutator` write; `.worktrees/review-arch`,
 `.worktrees/review-security`, `.worktrees/review-perf` and `.worktrees/verify` are **read-only**. Those four
 never commit — each moves its own branch to the SHA it's handed with `git merge --ff-only` and only reads. A
 failed fast-forward means something committed on that branch, which is itself an escalation.
@@ -68,6 +69,28 @@ The three reviewers get **one tree each** rather than sharing, because they run 
 one branch out twice, and three agents cannot safely share an index or a scratch directory. They are the only
 roles in the pipeline spawned together — everything else consumes the previous stage's commit and so must be
 serial.
+
+## Mutation testing is opt-in
+
+Phase 6 (the Mutator) is **OFF by default**. Preflight asks at the start of each cycle:
+
+```
+Mutation testing (Phase 6: PIT + Gherkin sensitivity sweep) is OFF for this cycle.
+Turn it on? [y/N]
+```
+
+Only an explicit yes turns it on. The config's `mutation_enabled` key is the pre-selected answer, and the
+lead asks the question each cycle. A config without the key resolves to `false`.
+
+With the phase off:
+
+- The lead does not create the mutator worktree and does not spawn the Mutator.
+- `SHA_final` is `SHA_reviewed`. The manual tester merges the reviewed Coder commit.
+- The lead runs `build`, `all_tests` and `coverage` in place of the Mutator's final verification.
+- The merge message says `mutate skipped`. The ledger and the cycle report show mutation testing and the
+  Gherkin sensitivity sweep as **SKIPPED**, never as passed.
+- No stage after the Coder proves that the tests catch bugs. The Coder's red phase for each gap-closing test
+  and its blind-spot tests are the only proof.
 
 ## Install
 
@@ -116,8 +139,8 @@ See `example/README.md` for the walkthrough.
   commit.
 - **No agent ever pushes.** Pushing remains exclusively a user decision after the skill ends.
 - **Two approval gates, not per-phase gates.** Gate 1: Gherkin approval, before any code exists. Gate 2: the
-  manual-test report, before anything merges back. Code → Review ×3 (looping back to the Coder) → Mutate run autonomously between
-  them; genuine ambiguity still stops the pipeline, and so does any review Blocker whose fix would change
+  manual-test report, before anything merges back. Code → Review ×3 (looping back to the Coder) → Mutate
+  (when turned on) run autonomously between them; genuine ambiguity still stops the pipeline, and so does any review Blocker whose fix would change
   observable behavior (that's a spec change, which belongs to the Specifier behind Gate 1). The Phase 0
   grilling adds an interactive conversation *before* the cycle when a requirement needs forming.
 - **Jira stays read-only** unless the config sets `jira_write_back: true` *and* you confirm at cycle close.

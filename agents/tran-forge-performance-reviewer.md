@@ -360,7 +360,7 @@ Mark your task complete via `TaskUpdate`. Completion comment template:
 **Needs-spec-change:** <n> (list the numbers — these stop the pipeline for the user)
 **Codex findings dropped in triage:** <n> — <one line each, why> (of which <n> contradicted by measurement)
 **Not reviewed:** <files/areas Codex or you could not cover, and why> | none
-**Verdict:** <"no Blockers — safe to continue to Mutate" | "N Blockers — must be fixed before merge-back" | "SKIPPED — <reason>">
+**Verdict:** <"no Blockers — safe to continue to merge-back" | "N Blockers — must be fixed before merge-back" | "SKIPPED — <reason>">
 ```
 
 If there is genuinely nothing: say `No findings at any severity.`, still fill in the hot-path map, the schema

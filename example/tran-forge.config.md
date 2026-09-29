@@ -35,6 +35,13 @@
 - mutation_score_min: 85
 - line_coverage_min: 90
 
+## Mutation testing (Phase 6 — opt-in, OFF by default)
+
+<!-- Preflight asks whether to turn Phase 6 on for the cycle. This key is the pre-selected answer.
+     The kata's pom.xml already has PIT, so an answer of yes works without more setup. -->
+
+- mutation_enabled: false
+
 ## Intake
 
 <!-- The kata has no Jira project. Flip jira_enabled on (and set a key) when pointing the flow at a real repo. -->

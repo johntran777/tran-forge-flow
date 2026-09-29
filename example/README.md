@@ -21,11 +21,15 @@ claude
 
 Then invoke `/tran-forge`. What happens:
 
-1. **Preflight** — config read, clean tree checked, six worktrees created
-   (`.worktrees/{coder,mutator,review-arch,review-security,review-perf,verify}`), toolchain + Codex smoke run.
+1. **Preflight** — config read, the mutation question asked ("Turn it on? [y/N]" — the default is OFF),
+   clean tree checked, worktrees created
+   (`.worktrees/{coder,review-arch,review-security,review-perf,verify}`, plus `mutator` when you answered
+   yes), toolchain + Codex smoke run.
 2. **Specify** — the Specifier drafts Gherkin for Feature 1 and the pipeline stops at **Gate 1**:
    you approve (or revise) the spec.
 3. **Code → Review ×3 → Mutate** — autonomous on isolated branches, handing off commit SHAs.
+   Mutate runs only when you turned it on at preflight. Without it, the lead runs build, tests and
+   coverage itself and records the phase as SKIPPED.
    The reviews are three Codex passes at `gpt-5.6-sol`/`xhigh` — design & architecture, OWASP security and
    performance — spawned together and run **in parallel**, one read-only worktree each; without the `codex`
    CLI each is reported SKIPPED, not passed. The lead waits for all three, de-duplicates their findings into
@@ -36,8 +40,9 @@ Then invoke `/tran-forge`. What happens:
    exercises every approved scenario by hand plus the edges the spec never pinned. The kata has no UI,
    so no browser is involved. The pipeline stops at **Gate 2**: you sign off.
 5. **Cycle close** — the lead merges to `main`, asks whether to keep the requirement entry and the
-   `.feature` file, presents the cycle report (tests, coverage, mutation score, review findings,
-   Gherkin sensitivity per scenario, manual results), and asks for the next feature.
+   `.feature` file, presents the cycle report (tests, coverage, review findings, manual results — plus
+   the mutation score and the Gherkin sensitivity per scenario when Mutate ran, else SKIPPED), and asks
+   for the next feature.
 
 ## Why setup.sh (instead of running in place)
 

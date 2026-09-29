@@ -7,7 +7,8 @@ safe: isolated branches, commit-pointer handoffs, and lead-routed communication.
 
 - The target repo's **main checkout** holds the base branch (named in `tran-forge.config.md` → `base_branch`).
   The **Specifier works there directly** — specs land on base, and finished cycles merge back to base.
-- Six git worktrees, created by the team lead during preflight (never by you). **Your spawn brief names your
+- Up to six git worktrees, created by the team lead during preflight (never by you). The Mutator's tree
+  exists only when the user turned mutation testing on at preflight; the phase is off by default. **Your spawn brief names your
   branch — use exactly that string**, `tran-forge-<role>`. Never "correct" a branch name, and never create a
   differently-prefixed branch yourself: the role's history lives on the branch you were given.
 
@@ -20,7 +21,7 @@ safe: isolated branches, commit-pointer handoffs, and lead-routed communication.
   | Security reviewer    | `.worktrees/review-security` | `tran-forge-review-security` | **nothing** |
   | Performance reviewer | `.worktrees/review-perf`| `tran-forge-review-perf`| **nothing** |
   | Manual tester        | `.worktrees/verify`     | `tran-forge-verify`     | **nothing** |
-  | Mutator              | `.worktrees/mutator`    | `tran-forge-mutator`    | tests only |
+  | Mutator (opt-in)     | `.worktrees/mutator`    | `tran-forge-mutator`    | tests only |
 
 - The four **read-only trees** (`review-arch`, `review-security`, `review-perf`, `verify`) belong to roles
   that commit nothing. Each moves its own branch to the SHA it was handed with

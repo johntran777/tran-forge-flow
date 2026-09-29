@@ -43,5 +43,6 @@ The result of the flow creation should be stored under the folder `tran-forge-fl
  a review finding instead of an agent's unreviewed judgement.
 +Add a manual testing step after the Mutator step
 +Should we add cucumber for the mutator testing?
++Disable the mutation testing step by default. Preflight asks the user to turn it on; the default is OFF.
 
 

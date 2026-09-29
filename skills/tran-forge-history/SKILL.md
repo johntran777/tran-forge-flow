@@ -55,6 +55,8 @@ git log -1 --format='%s' HEAD                         # merge msg carries all fo
 
 The merge commit message is the spine: a Tran Forge merge records `spec`, `code`, `reviewed` and
 `mutate` SHAs. Take the chain from there rather than guessing which commit was which handoff.
+`mutate skipped` in that message means that mutation testing was off for the cycle. The phase is opt-in
+and off by default, and the ledger records the preflight choice. There is then no Mutator commit to find.
 
 Then, per artifact class:
 
@@ -63,7 +65,11 @@ Then, per artifact class:
 - **Decisions** — the requirements file's numbered decisions and `R*` refinement entries, each with
   the commit that recorded it. These are the human rulings; they are the most valuable content after
   the failures, because they explain *why* the code looks the way it does.
-- **Mutation** — parse `<module>/target/pit-reports/mutations.xml`. **PIT writes
+- **Mutation** — first read the cycle's mutation choice from the ledger or the merge message. When the
+  phase was off, show the Mutate stage, the mutation score and the sensitivity sweep as **SKIPPED — off
+  at preflight**. Do not show them as passed, and do not show them as unrecoverable. Do not take a score
+  from a `target/pit-reports` directory that an earlier cycle left behind. When the phase was on, parse
+  `<module>/target/pit-reports/mutations.xml`. **PIT writes
   `status='KILLED'` with single quotes**, so match `status='[A-Z_]+'` and `status="[A-Z_]+"` both, or
   you will silently compute 0%. Report total / killed / survived and the per-class breakdown.
   Then recover **how the Mutator worked**, not only the score: the PIT invocation (differential pass

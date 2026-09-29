@@ -57,9 +57,9 @@ These are the shapes the config template defaults to (the config file's values a
 - **The Cucumber suite is excluded from PIT** (`excludedTestClasses` covers the `acceptance` package). PIT's
   per-test coverage mapping does not work through the Cucumber engine — runs get slow and flaky. Killing
   mutants is the UNIT suite's job. This is also why unit tests must stay separate from acceptance tests.
-  Consequence: **nothing automated ever grades the acceptance suite's teeth.** That is why the Mutator runs the
-  manual *Gherkin sensitivity sweep* instead — break the rule a scenario states, run `acceptance_tests`, prove
-  that scenario fails, revert. Do not "fix" this by pointing PIT at the Cucumber suite; the sweep is the
+  Consequence: **nothing automated ever grades the acceptance suite's teeth.** That is why the Mutator —
+  when the opt-in Phase 6 is on — runs the manual *Gherkin sensitivity sweep* instead: break the rule a
+  scenario states, run `acceptance_tests`, prove that scenario fails, revert. Do not "fix" this by pointing PIT at the Cucumber suite; the sweep is the
   supported substitute.
 - The `@SpringBootApplication` bootstrap class is excluded from mutation targets — there is nothing meaningful
   to mutate in it.
@@ -71,8 +71,9 @@ These are the shapes the config template defaults to (the config file's values a
 
 PIT mutates the JVM **bytecode of production classes** — the service/domain layer. Some behavior never becomes
 a mutable instruction, so a 100% mutation score on the surrounding class proves nothing about it. These need a
-**mandatory dedicated test regardless of the mutation score**; the Coder owns writing them, the Mutator flags
-their absence as a finding for the lead.
+**mandatory dedicated test regardless of the mutation score**; the Coder owns writing them. The lead checks for
+them at Phase 2. The Mutator flags their absence as a finding for the lead when Phase 6 runs — that phase is
+opt-in and off by default, so do not rely on it to catch a missing one.
 
 - **Repository `@Query` / JPQL / derived-finder methods.** The query lives in an annotation string or a method
   name — not in mutable bytecode. PIT cannot mutate it, so a wrong `WHERE`, a swapped join, or an off-by-one

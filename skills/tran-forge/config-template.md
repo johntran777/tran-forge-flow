@@ -39,6 +39,22 @@
 - mutation_score_min: 85
 - line_coverage_min: 90
 
+## Mutation testing (Phase 6 — opt-in, OFF by default)
+
+<!-- Phase 6 (the Mutator: PIT plus the Gherkin sensitivity sweep) runs only when it is turned on.
+     Preflight asks you at the start of each cycle. This key is only the pre-selected answer to that
+     question. The key is optional: a config without it resolves to false.
+
+     false (default) — preflight asks "Turn it on? [y/N]". Without an explicit yes, Phase 6 is skipped:
+                       no mutator worktree, no PIT run, no sensitivity sweep. The lead runs build,
+                       all_tests and coverage in place of the Mutator's final verification. The cycle
+                       report shows mutation testing as SKIPPED, never as passed.
+     true            — preflight asks "Keep it on? [Y/n]".
+
+     The `mutation_*` commands and `mutation_score_min` apply only to a cycle that has Phase 6 on. -->
+
+- mutation_enabled: false
+
 ## Token budgets
 
 <!-- Context discipline (see the skill's "Prime directive — token discipline").

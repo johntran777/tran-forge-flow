@@ -172,7 +172,8 @@ drive a slice — do this before committing it:
 3. `git checkout -- <file>` to revert, and confirm with `git status --porcelain` before moving on.
 
 Never commit an experiment. This is the same technique the Mutator uses on the Gherkin later, applied here so
-the weak tests are never written in the first place rather than found four stages downstream.
+the weak tests are never written in the first place rather than found four stages downstream. The Mutator
+phase is opt-in and off by default, so on most cycles your red phase is the only proof that a test can fail.
 
 ## Review-fix mode
 
